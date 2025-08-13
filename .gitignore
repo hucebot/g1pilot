@@ -60,5 +60,7 @@ hardware/simpleGimball/~$motorMount1.SLDPRT
 hardware/simpleGimball/~$motorMount2.SLDPRT
 hardware/~$armAssembly.SLDASM
 
+/rosbags
+
 *.FCBak
 

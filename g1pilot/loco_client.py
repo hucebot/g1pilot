@@ -127,9 +127,9 @@ class G1LocoClient(Node):
             self.robot.StopMove()
 
         if msg.buttons[7] == 1 and not self.robot_stopped and self.balanced:
-            vx = round(msg.axes[1] * 0.2 * -1, 2)
-            vy = round(msg.axes[0] * 0.2, 2)
-            yaw = round(msg.axes[3] * 0.2, 2)
+            vx = round(msg.axes[1] * 0.5 * -1, 2)
+            vy = round(msg.axes[0] * 0.4 * -1, 2)
+            yaw = round(msg.axes[3] * 0.4 * -1, 2)
 
             self.get_logger().info(f"Moving with vx: {vx}, vy: {vy}, yaw: {yaw}")
             if abs(vx) < 0.03 and abs(vy) < 0.03 and abs(yaw) < 0.03:
