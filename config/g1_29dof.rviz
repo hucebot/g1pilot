@@ -6,11 +6,10 @@ Panels:
       Expanded:
         - /Global Options1
         - /Status1
-        - /TF1
-        - /TF1/Tree1
-        - /TF1/Tree1/world1
-      Splitter Ratio: 0.3790035545825958
-    Tree Height: 725
+        - /TF1/Frames1
+        - /TF1/Tree1/pelvis1
+      Splitter Ratio: 0.7441176176071167
+    Tree Height: 752
   - Class: rviz_common/Selection
     Name: Selection
   - Class: rviz_common/Tool Properties
@@ -323,10 +322,6 @@ Visualization Manager:
           Show Axes: false
           Show Trail: false
           Value: true
-        world:
-          Alpha: 1
-          Show Axes: false
-          Show Trail: false
       Mass Properties:
         Inertia: false
         Mass: false
@@ -339,210 +334,221 @@ Visualization Manager:
       Enabled: true
       Frame Timeout: 15
       Frames:
-        All Enabled: true
+        All Enabled: false
         d435_link:
-          Value: true
+          Value: false
         head_link:
-          Value: true
+          Value: false
         imu_in_pelvis:
-          Value: true
+          Value: false
         imu_in_torso:
-          Value: true
+          Value: false
         left_ankle_pitch_link:
-          Value: true
+          Value: false
         left_ankle_roll_link:
-          Value: true
+          Value: false
         left_elbow_link:
-          Value: true
+          Value: false
         left_foot_line_contact_lower:
-          Value: true
+          Value: false
         left_foot_line_contact_upper:
-          Value: true
+          Value: false
         left_foot_lower_left:
-          Value: true
+          Value: false
         left_foot_lower_right:
-          Value: true
+          Value: false
         left_foot_point_contact:
-          Value: true
+          Value: false
         left_foot_upper_left:
-          Value: true
+          Value: false
         left_foot_upper_right:
-          Value: true
+          Value: false
         left_hand_point_contact:
-          Value: true
+          Value: false
         left_hip_pitch_link:
-          Value: true
+          Value: false
         left_hip_roll_link:
-          Value: true
+          Value: false
         left_hip_yaw_link:
-          Value: true
+          Value: false
         left_knee_link:
-          Value: true
+          Value: false
         left_rubber_hand:
-          Value: true
+          Value: false
         left_shoulder_pitch_link:
-          Value: true
+          Value: false
         left_shoulder_roll_link:
-          Value: true
+          Value: false
         left_shoulder_yaw_link:
-          Value: true
+          Value: false
         left_wrist_pitch_link:
-          Value: true
+          Value: false
         left_wrist_roll_link:
-          Value: true
+          Value: false
         left_wrist_yaw_link:
-          Value: true
+          Value: false
         logo_link:
-          Value: true
+          Value: false
         mid360_link:
-          Value: true
+          Value: false
         pelvis:
-          Value: true
+          Value: false
         pelvis_contour_link:
-          Value: true
+          Value: false
         right_ankle_pitch_link:
-          Value: true
+          Value: false
         right_ankle_roll_link:
-          Value: true
+          Value: false
         right_elbow_link:
-          Value: true
+          Value: false
         right_foot_line_contact_lower:
-          Value: true
+          Value: false
         right_foot_line_contact_upper:
-          Value: true
+          Value: false
         right_foot_lower_left:
-          Value: true
+          Value: false
         right_foot_lower_right:
-          Value: true
+          Value: false
         right_foot_point_contact:
-          Value: true
+          Value: false
         right_foot_upper_left:
-          Value: true
+          Value: false
         right_foot_upper_right:
-          Value: true
+          Value: false
         right_hand_point_contact:
           Value: true
         right_hip_pitch_link:
-          Value: true
+          Value: false
         right_hip_roll_link:
-          Value: true
+          Value: false
         right_hip_yaw_link:
-          Value: true
+          Value: false
         right_knee_link:
-          Value: true
+          Value: false
         right_rubber_hand:
-          Value: true
+          Value: false
         right_shoulder_pitch_link:
-          Value: true
+          Value: false
         right_shoulder_roll_link:
-          Value: true
+          Value: false
         right_shoulder_yaw_link:
-          Value: true
+          Value: false
         right_wrist_pitch_link:
-          Value: true
+          Value: false
         right_wrist_roll_link:
-          Value: true
+          Value: false
         right_wrist_yaw_link:
-          Value: true
+          Value: false
         torso_link:
-          Value: true
+          Value: false
         waist_roll_link:
-          Value: true
+          Value: false
         waist_yaw_link:
-          Value: true
+          Value: false
         world:
-          Value: true
-      Marker Scale: 1
+          Value: false
+      Marker Scale: 0.4000000059604645
       Name: TF
       Show Arrows: true
       Show Axes: true
-      Show Names: false
+      Show Names: true
       Tree:
+        pelvis:
+          imu_in_pelvis:
+            {}
+          left_hip_pitch_link:
+            left_hip_roll_link:
+              left_hip_yaw_link:
+                left_knee_link:
+                  left_ankle_pitch_link:
+                    left_ankle_roll_link:
+                      left_foot_line_contact_lower:
+                        {}
+                      left_foot_line_contact_upper:
+                        {}
+                      left_foot_lower_left:
+                        {}
+                      left_foot_lower_right:
+                        {}
+                      left_foot_point_contact:
+                        {}
+                      left_foot_upper_left:
+                        {}
+                      left_foot_upper_right:
+                        {}
+          pelvis_contour_link:
+            {}
+          right_hip_pitch_link:
+            right_hip_roll_link:
+              right_hip_yaw_link:
+                right_knee_link:
+                  right_ankle_pitch_link:
+                    {}
+          waist_yaw_link:
+            waist_roll_link:
+              torso_link:
+                d435_link:
+                  {}
+                head_link:
+                  {}
+                imu_in_torso:
+                  {}
+                left_shoulder_pitch_link:
+                  left_shoulder_roll_link:
+                    left_shoulder_yaw_link:
+                      left_elbow_link:
+                        left_wrist_roll_link:
+                          left_wrist_pitch_link:
+                            left_wrist_yaw_link:
+                              left_rubber_hand:
+                                left_hand_point_contact:
+                                  {}
+                logo_link:
+                  {}
+                mid360_link:
+                  {}
+                right_shoulder_pitch_link:
+                  right_shoulder_roll_link:
+                    right_shoulder_yaw_link:
+                      right_elbow_link:
+                        right_wrist_roll_link:
+                          right_wrist_pitch_link:
+                            right_wrist_yaw_link:
+                              right_rubber_hand:
+                                right_hand_point_contact:
+                                  {}
+        right_ankle_roll_link:
+          right_foot_line_contact_lower:
+            {}
+          right_foot_line_contact_upper:
+            {}
+          right_foot_lower_left:
+            {}
+          right_foot_lower_right:
+            {}
+          right_foot_point_contact:
+            {}
+          right_foot_upper_left:
+            {}
+          right_foot_upper_right:
+            {}
         world:
-          pelvis:
-            imu_in_pelvis:
-              {}
-            left_hip_pitch_link:
-              left_hip_roll_link:
-                left_hip_yaw_link:
-                  left_knee_link:
-                    left_ankle_pitch_link:
-                      left_ankle_roll_link:
-                        left_foot_line_contact_lower:
-                          {}
-                        left_foot_line_contact_upper:
-                          {}
-                        left_foot_lower_left:
-                          {}
-                        left_foot_lower_right:
-                          {}
-                        left_foot_point_contact:
-                          {}
-                        left_foot_upper_left:
-                          {}
-                        left_foot_upper_right:
-                          {}
-            pelvis_contour_link:
-              {}
-            right_hip_pitch_link:
-              right_hip_roll_link:
-                right_hip_yaw_link:
-                  right_knee_link:
-                    right_ankle_pitch_link:
-                      right_ankle_roll_link:
-                        right_foot_line_contact_lower:
-                          {}
-                        right_foot_line_contact_upper:
-                          {}
-                        right_foot_lower_left:
-                          {}
-                        right_foot_lower_right:
-                          {}
-                        right_foot_point_contact:
-                          {}
-                        right_foot_upper_left:
-                          {}
-                        right_foot_upper_right:
-                          {}
-            waist_yaw_link:
-              waist_roll_link:
-                torso_link:
-                  d435_link:
-                    {}
-                  head_link:
-                    {}
-                  imu_in_torso:
-                    {}
-                  left_shoulder_pitch_link:
-                    left_shoulder_roll_link:
-                      left_shoulder_yaw_link:
-                        left_elbow_link:
-                          left_wrist_roll_link:
-                            left_wrist_pitch_link:
-                              left_wrist_yaw_link:
-                                left_rubber_hand:
-                                  left_hand_point_contact:
-                                    {}
-                  logo_link:
-                    {}
-                  mid360_link:
-                    {}
-                  right_shoulder_pitch_link:
-                    right_shoulder_roll_link:
-                      right_shoulder_yaw_link:
-                        right_elbow_link:
-                          right_wrist_roll_link:
-                            right_wrist_pitch_link:
-                              right_wrist_yaw_link:
-                                right_rubber_hand:
-                                  right_hand_point_contact:
-                                    {}
+          {}
       Update Interval: 0
+      Value: true
+    - Class: rviz_default_plugins/InteractiveMarkers
+      Enable Transparency: true
+      Enabled: true
+      Interactive Markers Namespace: /right_hand_goal_marker
+      Name: InteractiveMarkers
+      Show Axes: false
+      Show Descriptions: true
+      Show Visual Aids: false
       Value: true
   Enabled: true
   Global Options:
-    Background Color: 48; 48; 48
-    Fixed Frame: world
+    Background Color: 9; 12; 40
+    Fixed Frame: right_foot_upper_right
     Frame Rate: 30
   Name: root
   Tools:
@@ -585,33 +591,33 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 4.035892009735107
+      Distance: 2.306184768676758
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -0.20019236207008362
-        Y: -0.22171208262443542
-        Z: 0.08751517534255981
+        X: -0.4508979916572571
+        Y: -0.1749056577682495
+        Z: 0.47191858291625977
       Focal Shape Fixed Size: true
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.17539796233177185
+      Pitch: 0.2203979194164276
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 1.0453988313674927
+      Yaw: 0.8954002857208252
     Saved: ~
 Window Geometry:
   Displays:
     collapsed: false
-  Height: 1016
+  Height: 1043
   Hide Left Dock: false
-  Hide Right Dock: false
-  QMainWindow State: 000000ff00000000fd0000000400000000000001560000035efc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000003b0000035e000000c700fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000010f0000035efc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073010000003b0000035e000000a000fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e100000197000000030000073a0000003efc0100000002fb0000000800540069006d006501000000000000073a0000025300fffffffb0000000800540069006d00650100000000000004500000000000000000000004c90000035e00000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
+  Hide Right Dock: true
+  QMainWindow State: 000000ff00000000fd00000004000000000000015600000379fc0200000008fb0000001200530065006c0065006300740069006f006e00000001e10000009b0000005c00fffffffb0000001e0054006f006f006c002000500072006f007000650072007400690065007302000001ed000001df00000185000000a3fb000000120056006900650077007300200054006f006f02000001df000002110000018500000122fb000000200054006f006f006c002000500072006f0070006500720074006900650073003203000002880000011d000002210000017afb000000100044006900730070006c006100790073010000003b00000379000000c700fffffffb0000002000730065006c0065006300740069006f006e00200062007500660066006500720200000138000000aa0000023a00000294fb00000014005700690064006500530074006500720065006f02000000e6000000d2000003ee0000030bfb0000000c004b0069006e0065006300740200000186000001060000030c00000261000000010000010f00000379fc0200000003fb0000001e0054006f006f006c002000500072006f00700065007200740069006500730100000041000000780000000000000000fb0000000a00560069006500770073000000003b00000379000000a000fffffffb0000001200530065006c0065006300740069006f006e010000025a000000b200000000000000000000000200000490000000a9fc0100000001fb0000000a00560069006500770073030000004e00000080000002e10000019700000003000007800000003efc0100000002fb0000000800540069006d00650100000000000007800000025300fffffffb0000000800540069006d00650100000000000004500000000000000000000006240000037900000004000000040000000800000008fc0000000100000002000000010000000a0054006f006f006c00730100000000ffffffff0000000000000000
   Selection:
     collapsed: false
   Time:
@@ -619,7 +625,7 @@ Window Geometry:
   Tool Properties:
     collapsed: false
   Views:
-    collapsed: false
-  Width: 1850
-  X: 1990
-  Y: 27
+    collapsed: true
+  Width: 1920
+  X: 0
+  Y: 0

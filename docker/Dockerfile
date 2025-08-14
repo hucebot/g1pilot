@@ -52,6 +52,13 @@ RUN git clone https://github.com/CDonosoK/astroviz_interfaces.git
 RUN apt update
 RUN apt install ros-${ROS_DISTRO}-rmw-cyclonedds-cpp -y
 
+RUN apt install -y \
+    ros-${ROS_DISTRO}-ros-gz \
+    ros-${ROS_DISTRO}-ros-gz-sim \
+    ros-${ROS_DISTRO}-ros-gz-bridge
+
+RUN apt install gz-tools  || apt install ign-tools
+
 RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /root/.bashrc && \
     echo "source /ros2_ws/install/setup.bash" >> /root/.bashrc
 

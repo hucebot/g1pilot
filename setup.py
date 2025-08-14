@@ -1,41 +1,44 @@
 from setuptools import find_packages, setup
 from glob import glob
+import os
 
 package_name = 'g1pilot'
+
+def expand(patterns):
+    files = []
+    for p in patterns:
+        files.extend(glob(p, recursive=True))
+    return files
 
 setup(
     name=package_name,
     version='0.0.0',
     packages=find_packages(exclude=['test']),
     data_files=[
-        ('share/ament_index/resource_index/packages',
-            ['resource/' + package_name]),
-         (
-            "share/" + package_name + "/launch",
-            [
-                "launch/state_publisher_29dof.launch.py",
-                "launch/bridge_launcher.launch.py",
-            ],
-        ),
-        ('share/' + package_name, ['package.xml']),
-        (
-            "share/" + package_name + "/description_files/urdf",
-            glob("description_files/urdf/*.urdf"),
-        ),
-        (
-            "share/" + package_name + "/description_files/xml",
-            glob("description_files/xml/*.xml"),
-        ),
-        # Install meshes
-        (
-            "share/" + package_name + "/description_files/meshes",
-            glob("description_files/meshes/*.STL"),
-        ),
-        # Install rviz config files
-        (
-            "share/" + package_name + "/rviz",
-            glob("rviz/*.rviz"),
-        ),
+        ('share/ament_index/resource_index/packages', [f'resource/{package_name}']),
+        (f'share/{package_name}', ['package.xml']),
+
+        # Launch files
+        (f'share/{package_name}/launch', [
+            'launch/state_publisher_29dof.launch.py',
+            'launch/robot_state_launcher.launch.py',
+            'launch/controller_launcher.launch.py',
+        ]),
+
+        # URDF / XML
+        (f'share/{package_name}/description_files/urdf',
+         expand([ 'description_files/urdf/*.urdf', 'description_files/urdf/*.xacro' ])),
+        (f'share/{package_name}/description_files/xml',
+         expand([ 'description_files/xml/*.xml' ])),
+
+        # Meshes (soporta mayúsculas/minúsculas y subcarpetas)
+        (f'share/{package_name}/description_files/meshes',
+         expand([
+            'description_files/meshes/**/*.STL',
+         ])),
+
+        # RViz
+        (f'share/{package_name}/rviz', expand(['rviz/*.rviz'])),
     ],
     install_requires=['setuptools'],
     zip_safe=True,

@@ -129,18 +129,10 @@ source install/setup.bash
 To visualize the real robot in RViz, you can run the following command:
 
 ```bash
-ros2 run g1pilot ros_bridge --ros-args -p interface:=<your_interface>
+ros2 launch g1pilot robot_state_launcher.launch.py
 ```
 
-To control the robot, using the joint controller, you can run the following command:
+To control the robot, using the joint controller or the cartesian controller, you can run the following command:
 ```bash
-ros2 run g1pilot joint_controller --ros-args -p interface:=<your_interface>
+ros2 launch g1pilot controller_launcher.launch.py
 ```
-To control the robot, using the cartesian controller, you can run the following command:
-```bash
-ros2 run g1pilot cartesian_controller --ros-args -p interface:=<your_interface>
-```
-```bash
-ros2 run g1pilot interactive_marker
-```
-

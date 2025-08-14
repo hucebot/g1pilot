@@ -1,5 +1,4 @@
 #!/usr/bin/env python3
-
 import os
 import sys
 import time
@@ -8,15 +7,16 @@ import numpy as np
 import rclpy
 from rclpy.node import Node
 from rclpy.qos import QoSProfile
+from rclpy.executors import SingleThreadedExecutor
+
 from sensor_msgs.msg import JointState
 from geometry_msgs.msg import PoseStamped
+from std_msgs.msg import Bool
+from std_srvs.srv import SetBool
 
 import pinocchio as pin
 from pinocchio import SE3
-
 from ament_index_python.packages import get_package_share_directory
-from PyQt5.QtWidgets import QApplication, QWidget, QVBoxLayout, QPushButton
-from PyQt5 import QtCore
 
 # --- Joint mapping definitions ---
 class G1JointIndex:
@@ -83,11 +83,10 @@ _joint_index_to_ros_name = {
 }
 ALL_JOINT_INDICES = list(range(29))
 
-class RightArmIKController(Node, QWidget):
+
+class RightArmIKController(Node):
     def __init__(self):
-        Node.__init__(self, 'right_arm_ik_controller')
-        QWidget.__init__(self)
-        self.setWindowTitle("Right Arm IK Only (No Robot Command)")
+        super().__init__('right_arm_ik_controller_headless')
 
         self.alpha = 0.2
         self.max_dq = 0.2
@@ -95,24 +94,22 @@ class RightArmIKController(Node, QWidget):
 
         self.joints = np.zeros(len(ALL_JOINT_INDICES))
         self.joints_prev = self.joints.copy()
+        self.received_joint = False
 
         qos = QoSProfile(depth=10)
+
         self.ik_pub = self.create_publisher(JointState, '/ik_joint_states', qos)
+
         self.create_subscription(JointState, '/joint_states', self._joint_state_cb, qos)
         self.create_subscription(PoseStamped, '/g1pilot/right_hand_goal', self._ik_target_cb, qos)
-
 
         pkg_share = get_package_share_directory('g1pilot')
         urdf = os.path.join(pkg_share, 'description_files', 'urdf', 'g1_29dof.urdf')
         mesh = os.path.join(pkg_share, 'description_files', 'meshes')
-        self.model, _, _ = pin.buildModelsFromUrdf(
-            urdf, package_dirs=[mesh]
-        )
+        self.model, _, _ = pin.buildModelsFromUrdf(urdf, package_dirs=[mesh])
         self.data = pin.Data(self.model)
 
-        self.name_to_index = _joint_index_to_ros_name.copy()
-        self.ros_names = [self.name_to_index[i] for i in ALL_JOINT_INDICES]
-
+        self.ros_names = [_joint_index_to_ros_name[i] for i in ALL_JOINT_INDICES]
         self.name_to_q_index = {}
         for j in range(1, self.model.njoints):
             if self.model.joints[j].nq == 1:
@@ -120,28 +117,17 @@ class RightArmIKController(Node, QWidget):
                 if nm in self.ros_names:
                     self.name_to_q_index[nm] = self.model.joints[j].idx_q
 
-        self.eff_frame = 'right_wrist_pitch_link'
+        self.eff_frame = 'right_hand_point_contact'
         self.eff_frame_id = self.model.getFrameId(self.eff_frame)
-
-        layout = QVBoxLayout(self)
-        estop_btn = QPushButton("EMERGENCY STOP")
-        estop_btn.setStyleSheet("font-size: 24px; background-color: red; color: white;")
-        estop_btn.clicked.connect(self._on_estop)
-        layout.addWidget(estop_btn)
-
-        self.received_joint = False
-        self._qt_spin = QtCore.QTimer(self)
-        self._qt_spin.timeout.connect(lambda: rclpy.spin_once(self, timeout_sec=0))
-        self._qt_spin.start(10)
 
     def _joint_state_cb(self, msg: JointState):
         if self.emergency_stop:
             return
-        self.received_joint = True
         name_idx = {n: i for i, n in enumerate(self.ros_names)}
         for name, pos in zip(msg.name, msg.position):
             if name in name_idx:
-                self.joints[name_idx[name]] = pos
+                self.joints[name_idx[name]] = float(pos)
+        self.received_joint = True
 
     def _ik_target_cb(self, msg: PoseStamped):
         if self.emergency_stop or not self.received_joint:
@@ -159,6 +145,7 @@ class RightArmIKController(Node, QWidget):
         q_sol = self._solve_ik(q, target)
         if q_sol is None:
             return
+
         joints_sol = np.zeros(len(self.ros_names))
         for i, name in enumerate(self.ros_names):
             if name in self.name_to_q_index:
@@ -177,7 +164,11 @@ class RightArmIKController(Node, QWidget):
 
     def _solve_ik(self, q_init, target: SE3, max_iter=50, tol=1e-4, damping=1e-6):
         q = q_init.copy()
-        free_nv = sum(j.nv for j in self.model.joints if j.nq > 1)
+
+        base_nv = 0
+        if self.model.joints[1].nq > 1:
+            base_nv = self.model.joints[1].nv
+
         for _ in range(max_iter):
             pin.forwardKinematics(self.model, self.data, q)
             pin.updateFramePlacements(self.model, self.data)
@@ -186,30 +177,37 @@ class RightArmIKController(Node, QWidget):
             err = pin.log(err_tf).vector
             if np.linalg.norm(err) < tol:
                 return q
+
             J6 = pin.computeFrameJacobian(
                 self.model, self.data, q, self.eff_frame_id, pin.LOCAL_WORLD_ALIGNED
             )
-            J_red = J6[:, free_nv:]
-            JJt = J_red @ J_red.T
-            dq = J_red.T @ np.linalg.solve(JJt + damping * np.eye(6), err)
 
-            actuated_indices = [self.name_to_q_index[name] for name in self.ros_names]
-            q[actuated_indices] += dq[:len(actuated_indices)]
+            if base_nv > 0:
+                J_eff = J6[:, base_nv:]
+            else:
+                J_eff = J6
+
+            actuated_q_idx = [self.name_to_q_index[nm] for nm in self.ros_names if nm in self.name_to_q_index]
+            JJt = J_eff @ J_eff.T
+            dq_eff = J_eff.T @ np.linalg.solve(JJt + damping * np.eye(6), err)
+
+            for k, qi in enumerate(actuated_q_idx):
+                if k < dq_eff.shape[0]:
+                    q[qi] += dq_eff[k]
+
         self.get_logger().warn("IK did not converge")
         return None
 
-    def _on_estop(self):
-        self.emergency_stop = True
-        self.get_logger().error("Emergency stop triggered")
 
 def main(args=None):
     rclpy.init(args=args)
-    app = QApplication(sys.argv)
-    widget = RightArmIKController()
-    widget.show()
-    app.exec_()
-    widget.destroy_node()
-    rclpy.shutdown()
+    node = RightArmIKController()
+    try:
+        rclpy.spin(node)
+    finally:
+        node.destroy_node()
+        rclpy.shutdown()
+
 
 if __name__ == '__main__':
     main()

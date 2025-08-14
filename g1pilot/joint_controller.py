@@ -112,7 +112,6 @@ TORSO_JOINT_INDICES = [
     G1JointIndex.WaistPitch,
 ]
 
-
 CONTROLLED_JOINT_INDICES = RIGHT_JOINT_INDICES + TORSO_JOINT_INDICES
 
 
@@ -131,8 +130,12 @@ class JointController(Node, QtWidgets.QWidget):
         self.is_estop = False
         self.alpha = 0.2
 
-        self.using_robot = self.declare_parameter("use_robot", True).get_parameter_value().bool_value
+        self._sliders_initialized = False
+        self._initial_js_done = False
+
+        self.using_robot = self.declare_parameter("use_robot", False).get_parameter_value().bool_value
         iface = self.declare_parameter("interface", "eth0").get_parameter_value().string_value
+        self.init_timeout_ms = self.declare_parameter("init_timeout_ms", 500).get_parameter_value().integer_value
 
         if self.using_robot:
             try:
@@ -161,8 +164,13 @@ class JointController(Node, QtWidgets.QWidget):
             self.cmd_pub.Init()
             self.crc = CRC()
         else:
-            self.received = True
             self.update_mode_machine_ = True
+            qos = QoSProfile(depth=10)
+            self._initial_js_sub = self.create_subscription(JointState, '/joint_states', self._initial_js_cb, qos)
+            self._init_timer = QtCore.QTimer(self)
+            self._init_timer.setSingleShot(True)
+            self._init_timer.timeout.connect(self._fallback_zero_init)
+            self._init_timer.start(int(self.init_timeout_ms))
 
         qos = QoSProfile(depth=10)
         self.joint_pub = self.create_publisher(JointState, "/joint_states", qos)
@@ -190,32 +198,84 @@ class JointController(Node, QtWidgets.QWidget):
         estop_btn.clicked.connect(self._estop)
         layout.addWidget(estop_btn)
 
-        timer = QtCore.QTimer(self)
-        timer.timeout.connect(self._tick)
-        timer.start(50)
+        self._tick_timer = QtCore.QTimer(self)
+        self._tick_timer.timeout.connect(self._tick)
+        self._tick_timer.start(50)
+
 
     def _lowstate_cb(self, msg: LowStateType):
         for i in ALL_JOINT_INDICES:
             self.current[i] = msg.motor_state[i].q
+
         if not self.received:
             self.targets = self.current.copy()
             self.smoothed = self.current.copy()
+            self._sync_sliders_from_positions(self.targets)
+            self.received = True
+
         if not self.update_mode_machine_:
             self.mode_machine_ = msg.mode_machine
             self.update_mode_machine_ = True
-        self.received = True
+
+    def _initial_js_cb(self, msg: JointState):
+        """ Inicializa desde un JointState externo si no usamos robot. """
+        if self._initial_js_done or self.using_robot:
+            return
+
+        name_to_idx = {v: k for k, v in _joint_index_to_ros_name.items()}
+        any_found = False
+        for name, pos in zip(msg.name, msg.position):
+            idx = name_to_idx.get(name)
+            if idx is not None:
+                self.current[idx] = float(pos)
+                any_found = True
+
+        if any_found:
+            self.targets = self.current.copy()
+            self.smoothed = self.current.copy()
+            self._sync_sliders_from_positions(self.targets)
+            self.received = True
+            self._initial_js_done = True
+            if hasattr(self, "_init_timer"):
+                self._init_timer.stop()
 
     def _ik_cmd_cb(self, msg: JointState):
         if list(msg.name) == [_joint_index_to_ros_name[i] for i in ALL_JOINT_INDICES]:
             self.targets = list(msg.position)
-        else:
-            name_to_idx = {v: k for k, v in _joint_index_to_ros_name.items()}
-            for name, pos in zip(msg.name, msg.position):
-                idx = name_to_idx.get(name)
-                if idx is not None:
-                    self.targets[idx] = pos
+            self._sync_sliders_from_positions(self.targets)
+            return
 
+        name_to_idx = {v: k for k, v in _joint_index_to_ros_name.items()}
+        for name, pos in zip(msg.name, msg.position):
+            idx = name_to_idx.get(name)
+            if idx is not None:
+                self.targets[idx] = float(pos)
+                self._set_slider_deg(idx, math.degrees(float(pos)))
 
+    def _sync_sliders_from_positions(self, positions):
+        for idx in self.sliders.keys():
+            self._set_slider_deg(idx, math.degrees(positions[idx]))
+        self._sliders_initialized = True
+
+    def _set_slider_deg(self, idx: int, deg: float):
+        val = int(round(max(-180, min(180, deg))))
+        sld = self.sliders.get(idx)
+        if sld is not None:
+            sld.blockSignals(True)
+            sld.setValue(val)
+            sld.blockSignals(False)
+
+    def _fallback_zero_init(self):
+        """Si no llegó JointState externo en el timeout, arranca en 0."""
+        if self.received or self.using_robot:
+            return
+        self.current = [0.0] * len(ALL_JOINT_INDICES)
+        self.targets = self.current.copy()
+        self.smoothed = self.current.copy()
+        self._sync_sliders_from_positions(self.targets)
+        self.received = True
+
+    # ======= Acciones GUI =======
 
     def _on_slider(self, idx: int, deg: int):
         self.targets[idx] = math.radians(deg)
@@ -246,7 +306,7 @@ class JointController(Node, QtWidgets.QWidget):
         self.is_estop = True
 
     def _tick(self):
-        if not (self.received and self.update_mode_machine_):
+        if not (self.received and self.update_mode_machine_ if self.using_robot else self.received):
             return
 
         for i in ALL_JOINT_INDICES:
@@ -266,7 +326,6 @@ class JointController(Node, QtWidgets.QWidget):
             for i in ALL_JOINT_INDICES
         ]
         self.joint_pub.publish(js)
-
 
     def _send_cmd(self, *, smoothed: bool = False):
         if self.is_estop or not self.using_robot:
@@ -294,7 +353,6 @@ class JointController(Node, QtWidgets.QWidget):
         self.cmd_pub.Write(cmd)
 
 
-
 def main(args=None):
     rclpy.init(args=args)
     app = QtWidgets.QApplication(sys.argv)
@@ -308,6 +366,7 @@ def main(args=None):
     app.exec_()
     widget.destroy_node()
     rclpy.shutdown()
+
 
 if __name__ == "__main__":
     main()

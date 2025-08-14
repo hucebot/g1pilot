@@ -49,12 +49,6 @@ def generate_launch_description():
                         rviz_config_file_name,
                     )
                 ],
-            ),
-            Node(
-                package=package_name,
-                executable="state_publisher_29dof",
-                name="state_publisher_29dof",
-                output="screen",
-            ),
+            )
         ]
     )
