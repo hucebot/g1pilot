@@ -31,7 +31,7 @@ setup(
         (f'share/{package_name}/description_files/xml',
          expand([ 'description_files/xml/*.xml' ])),
 
-        # Meshes (soporta mayúsculas/minúsculas y subcarpetas)
+        # Meshes
         (f'share/{package_name}/description_files/meshes',
          expand([
             'description_files/meshes/**/*.STL',

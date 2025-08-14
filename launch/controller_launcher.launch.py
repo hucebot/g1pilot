@@ -3,7 +3,6 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
     return LaunchDescription([
-        # Nodo que lee y publica JointStates
         Node(
             package='g1pilot',
             executable='joint_controller',
