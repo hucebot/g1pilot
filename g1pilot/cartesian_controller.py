@@ -102,7 +102,7 @@ class RightArmIKController(Node, QWidget):
         self.create_subscription(PoseStamped, '/g1pilot/right_hand_goal', self._ik_target_cb, qos)
 
 
-        pkg_share = get_package_share_directory('g1_description')
+        pkg_share = get_package_share_directory('g1pilot')
         urdf = os.path.join(pkg_share, 'description_files', 'urdf', 'g1_29dof.urdf')
         mesh = os.path.join(pkg_share, 'description_files', 'meshes')
         self.model, _, _ = pin.buildModelsFromUrdf(

@@ -58,7 +58,7 @@ With native RViz visualization support and a ready-to-use Docker environment, G1
 - [License](#license)
 
 ## Pre-requisites
-- For visualization, you need to install the [g1_description](https://github.com/hucebot/g1_description) package in the same directory as this package.
+- For visualization, you need to install the [g1pilot](https://github.com/hucebot/g1pilot) package in the same directory as this package.
 - Be connected to the robot via WiFi or Ethernet. **It's important to know which interface you are using.**
 
 ## Installation
@@ -118,7 +118,7 @@ sh run.sh
 Once you have the docker image running, you can run the following command to start the unitree node:
 
 ```bash
-colcon build --symlink-install --packages-select g1pilot g1_description
+colcon build --symlink-install --packages-select g1pilot g1pilot
 ````
 
 Then, source the workspace:
