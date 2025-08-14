@@ -7,8 +7,8 @@ Panels:
         - /Global Options1
         - /Status1
         - /TF1/Frames1
-        - /TF1/Tree1/pelvis1
-      Splitter Ratio: 0.7441176176071167
+        - /Nav2Goal1
+      Splitter Ratio: 0.5647059082984924
     Tree Height: 752
   - Class: rviz_common/Selection
     Name: Selection
@@ -34,7 +34,7 @@ Visualization Manager:
     - Alpha: 0.5
       Cell Size: 1
       Class: rviz_default_plugins/Grid
-      Color: 160; 160; 164
+      Color: 113; 113; 116
       Enabled: true
       Line Style:
         Line Width: 0.029999999329447746
@@ -344,11 +344,11 @@ Visualization Manager:
         imu_in_torso:
           Value: false
         left_ankle_pitch_link:
-          Value: false
+          Value: true
         left_ankle_roll_link:
           Value: false
         left_elbow_link:
-          Value: false
+          Value: true
         left_foot_line_contact_lower:
           Value: false
         left_foot_line_contact_upper:
@@ -366,25 +366,25 @@ Visualization Manager:
         left_hand_point_contact:
           Value: false
         left_hip_pitch_link:
-          Value: false
+          Value: true
         left_hip_roll_link:
-          Value: false
+          Value: true
         left_hip_yaw_link:
-          Value: false
+          Value: true
         left_knee_link:
-          Value: false
+          Value: true
         left_rubber_hand:
           Value: false
         left_shoulder_pitch_link:
-          Value: false
+          Value: true
         left_shoulder_roll_link:
-          Value: false
+          Value: true
         left_shoulder_yaw_link:
-          Value: false
+          Value: true
         left_wrist_pitch_link:
-          Value: false
+          Value: true
         left_wrist_roll_link:
-          Value: false
+          Value: true
         left_wrist_yaw_link:
           Value: false
         logo_link:
@@ -396,11 +396,11 @@ Visualization Manager:
         pelvis_contour_link:
           Value: false
         right_ankle_pitch_link:
-          Value: false
+          Value: true
         right_ankle_roll_link:
           Value: false
         right_elbow_link:
-          Value: false
+          Value: true
         right_foot_line_contact_lower:
           Value: false
         right_foot_line_contact_upper:
@@ -418,137 +418,259 @@ Visualization Manager:
         right_hand_point_contact:
           Value: true
         right_hip_pitch_link:
-          Value: false
+          Value: true
         right_hip_roll_link:
-          Value: false
+          Value: true
         right_hip_yaw_link:
-          Value: false
+          Value: true
         right_knee_link:
-          Value: false
+          Value: true
         right_rubber_hand:
           Value: false
         right_shoulder_pitch_link:
-          Value: false
+          Value: true
         right_shoulder_roll_link:
-          Value: false
+          Value: true
         right_shoulder_yaw_link:
-          Value: false
+          Value: true
         right_wrist_pitch_link:
-          Value: false
+          Value: true
         right_wrist_roll_link:
-          Value: false
+          Value: true
         right_wrist_yaw_link:
           Value: false
         torso_link:
           Value: false
         waist_roll_link:
-          Value: false
+          Value: true
         waist_yaw_link:
-          Value: false
+          Value: true
         world:
-          Value: false
+          Value: true
       Marker Scale: 0.4000000059604645
       Name: TF
       Show Arrows: true
       Show Axes: true
-      Show Names: true
+      Show Names: false
       Tree:
-        pelvis:
-          imu_in_pelvis:
-            {}
-          left_hip_pitch_link:
-            left_hip_roll_link:
-              left_hip_yaw_link:
-                left_knee_link:
-                  left_ankle_pitch_link:
-                    left_ankle_roll_link:
-                      left_foot_line_contact_lower:
-                        {}
-                      left_foot_line_contact_upper:
-                        {}
-                      left_foot_lower_left:
-                        {}
-                      left_foot_lower_right:
-                        {}
-                      left_foot_point_contact:
-                        {}
-                      left_foot_upper_left:
-                        {}
-                      left_foot_upper_right:
-                        {}
-          pelvis_contour_link:
-            {}
-          right_hip_pitch_link:
-            right_hip_roll_link:
-              right_hip_yaw_link:
-                right_knee_link:
-                  right_ankle_pitch_link:
-                    {}
-          waist_yaw_link:
-            waist_roll_link:
-              torso_link:
-                d435_link:
-                  {}
-                head_link:
-                  {}
-                imu_in_torso:
-                  {}
-                left_shoulder_pitch_link:
-                  left_shoulder_roll_link:
-                    left_shoulder_yaw_link:
-                      left_elbow_link:
-                        left_wrist_roll_link:
-                          left_wrist_pitch_link:
-                            left_wrist_yaw_link:
-                              left_rubber_hand:
-                                left_hand_point_contact:
-                                  {}
-                logo_link:
-                  {}
-                mid360_link:
-                  {}
-                right_shoulder_pitch_link:
-                  right_shoulder_roll_link:
-                    right_shoulder_yaw_link:
-                      right_elbow_link:
-                        right_wrist_roll_link:
-                          right_wrist_pitch_link:
-                            right_wrist_yaw_link:
-                              right_rubber_hand:
-                                right_hand_point_contact:
-                                  {}
-        right_ankle_roll_link:
-          right_foot_line_contact_lower:
-            {}
-          right_foot_line_contact_upper:
-            {}
-          right_foot_lower_left:
-            {}
-          right_foot_lower_right:
-            {}
-          right_foot_point_contact:
-            {}
-          right_foot_upper_left:
-            {}
-          right_foot_upper_right:
-            {}
         world:
-          {}
+          pelvis:
+            imu_in_pelvis:
+              {}
+            left_hip_pitch_link:
+              left_hip_roll_link:
+                left_hip_yaw_link:
+                  left_knee_link:
+                    left_ankle_pitch_link:
+                      left_ankle_roll_link:
+                        left_foot_line_contact_lower:
+                          {}
+                        left_foot_line_contact_upper:
+                          {}
+                        left_foot_lower_left:
+                          {}
+                        left_foot_lower_right:
+                          {}
+                        left_foot_point_contact:
+                          {}
+                        left_foot_upper_left:
+                          {}
+                        left_foot_upper_right:
+                          {}
+            pelvis_contour_link:
+              {}
+            right_hip_pitch_link:
+              right_hip_roll_link:
+                right_hip_yaw_link:
+                  right_knee_link:
+                    right_ankle_pitch_link:
+                      right_ankle_roll_link:
+                        right_foot_line_contact_lower:
+                          {}
+                        right_foot_line_contact_upper:
+                          {}
+                        right_foot_lower_left:
+                          {}
+                        right_foot_lower_right:
+                          {}
+                        right_foot_point_contact:
+                          {}
+                        right_foot_upper_left:
+                          {}
+                        right_foot_upper_right:
+                          {}
+            waist_yaw_link:
+              waist_roll_link:
+                torso_link:
+                  d435_link:
+                    {}
+                  head_link:
+                    {}
+                  imu_in_torso:
+                    {}
+                  left_shoulder_pitch_link:
+                    left_shoulder_roll_link:
+                      left_shoulder_yaw_link:
+                        left_elbow_link:
+                          left_wrist_roll_link:
+                            left_wrist_pitch_link:
+                              left_wrist_yaw_link:
+                                left_rubber_hand:
+                                  left_hand_point_contact:
+                                    {}
+                  logo_link:
+                    {}
+                  mid360_link:
+                    {}
+                  right_shoulder_pitch_link:
+                    right_shoulder_roll_link:
+                      right_shoulder_yaw_link:
+                        right_elbow_link:
+                          right_wrist_roll_link:
+                            right_wrist_pitch_link:
+                              right_wrist_yaw_link:
+                                right_rubber_hand:
+                                  right_hand_point_contact:
+                                    {}
       Update Interval: 0
       Value: true
-    - Class: rviz_default_plugins/InteractiveMarkers
-      Enable Transparency: true
+    - Class: rviz_common/Group
+      Displays:
+        - Class: rviz_default_plugins/Marker
+          Enabled: true
+          Name: GoalMarker
+          Namespaces:
+            {}
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /g1pilot/goal_marker
+          Value: true
+        - Angle Tolerance: 0.10000000149011612
+          Class: rviz_default_plugins/Odometry
+          Covariance:
+            Orientation:
+              Alpha: 0.5
+              Color: 255; 255; 127
+              Color Style: Unique
+              Frame: Local
+              Offset: 1
+              Scale: 1
+              Value: true
+            Position:
+              Alpha: 0.30000001192092896
+              Color: 204; 51; 204
+              Scale: 1
+              Value: true
+            Value: true
+          Enabled: true
+          Keep: 100
+          Name: Odometry
+          Position Tolerance: 0.10000000149011612
+          Shape:
+            Alpha: 1
+            Axes Length: 1
+            Axes Radius: 0.10000000149011612
+            Color: 255; 25; 0
+            Head Length: 0.30000001192092896
+            Head Radius: 0.10000000149011612
+            Shaft Length: 1
+            Shaft Radius: 0.05000000074505806
+            Value: Arrow
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /g1pilot/odometry
+          Value: true
+        - Alpha: 1
+          Buffer Length: 1
+          Class: rviz_default_plugins/Path
+          Color: 25; 255; 0
+          Enabled: true
+          Head Diameter: 0.30000001192092896
+          Head Length: 0.20000000298023224
+          Length: 0.30000001192092896
+          Line Style: Lines
+          Line Width: 0.029999999329447746
+          Name: Path2Goal
+          Offset:
+            X: 0
+            Y: 0
+            Z: 0
+          Pose Color: 255; 85; 255
+          Pose Style: None
+          Radius: 0.029999999329447746
+          Shaft Diameter: 0.10000000149011612
+          Shaft Length: 0.10000000149011612
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /g1pilot/path
+          Value: true
+        - Alpha: 1
+          Class: rviz_default_plugins/PointStamped
+          Color: 204; 41; 204
+          Enabled: false
+          History Length: 1
+          Name: GoalReceived
+          Radius: 0.20000000298023224
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /g1pilot/goal
+          Value: false
+        - Alpha: 0.30000001192092896
+          Class: rviz_default_plugins/Map
+          Color Scheme: map
+          Draw Behind: false
+          Enabled: true
+          Name: Map
+          Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            Filter size: 10
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /map
+          Update Topic:
+            Depth: 5
+            Durability Policy: Volatile
+            History Policy: Keep Last
+            Reliability Policy: Reliable
+            Value: /map_updates
+          Use Timestamp: false
+          Value: true
       Enabled: true
-      Interactive Markers Namespace: /right_hand_goal_marker
-      Name: InteractiveMarkers
-      Show Axes: false
-      Show Descriptions: true
-      Show Visual Aids: false
-      Value: true
+      Name: Nav2Goal
+    - Class: rviz_common/Group
+      Displays:
+        - Class: rviz_default_plugins/InteractiveMarkers
+          Enable Transparency: true
+          Enabled: true
+          Interactive Markers Namespace: /right_hand_goal_marker
+          Name: InteractiveMarkers
+          Show Axes: false
+          Show Descriptions: true
+          Show Visual Aids: false
+          Value: true
+      Enabled: true
+      Name: Controller
   Enabled: true
   Global Options:
     Background Color: 9; 12; 40
-    Fixed Frame: right_foot_upper_right
+    Fixed Frame: world
     Frame Rate: 30
   Name: root
   Tools:
@@ -591,25 +713,25 @@ Visualization Manager:
   Views:
     Current:
       Class: rviz_default_plugins/Orbit
-      Distance: 2.306184768676758
+      Distance: 7.460793495178223
       Enable Stereo Rendering:
         Stereo Eye Separation: 0.05999999865889549
         Stereo Focal Distance: 1
         Swap Stereo Eyes: false
         Value: false
       Focal Point:
-        X: -0.4508979916572571
-        Y: -0.1749056577682495
-        Z: 0.47191858291625977
-      Focal Shape Fixed Size: true
+        X: 0.38805267214775085
+        Y: 0.5332897305488586
+        Z: -0.4005294144153595
+      Focal Shape Fixed Size: false
       Focal Shape Size: 0.05000000074505806
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.009999999776482582
-      Pitch: 0.2203979194164276
+      Pitch: 0.6797969341278076
       Target Frame: <Fixed Frame>
       Value: Orbit (rviz)
-      Yaw: 0.8954002857208252
+      Yaw: 2.2754015922546387
     Saved: ~
 Window Geometry:
   Displays:
