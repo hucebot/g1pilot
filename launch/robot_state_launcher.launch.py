@@ -24,8 +24,8 @@ def generate_launch_description():
     return LaunchDescription([
         Node(
             package='g1pilot',
-            executable='ros_bridge',
-            name='ros_bridge',
+            executable='robot_state',
+            name='robot_state',
             parameters=[{'interface': 'eth0'}],
             output='screen'
         ),
