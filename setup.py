@@ -18,12 +18,12 @@ setup(
         ('share/ament_index/resource_index/packages', [f'resource/{package_name}']),
         (f'share/{package_name}', ['package.xml']),
 
-        # Launch files
+        # Launch Files
         (f'share/{package_name}/launch', [
-            'launch/state_publisher_29dof.launch.py',
             'launch/robot_state_launcher.launch.py',
             'launch/controller_launcher.launch.py',
-            'launch/teleoperation_launcher.launch.py'
+            'launch/teleoperation_launcher.launch.py',
+            'launch/navigation_launcher.launch.py'
         ]),
 
         # URDF / XML
@@ -50,20 +50,23 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
+            # States Nodes
+            'robot_state = g1pilot.state.robot_state:main',
+            'state_publisher_29dof = g1pilot.state.state_publisher_29dof:main',
+
+            # Controllers Nodes
             'cartesian_controller = g1pilot.cartesian_controller:main',
-            'joint_controller = g1pilot.joint_controller:main',
-            'interactive_marker = g1pilot.interactive_marker:main',
-            'robot_state = g1pilot.robot_state:main',
-            'state_publisher_29dof = g1pilot.state_publisher_29dof:main',
+            'joint_controller = g1pilot.controller.joint_controller:main',
+            'interactive_marker = g1pilot.controller.interactive_marker:main',
 
-            'loco_client = g1pilot.loco_client:main',
-            'joystick = g1pilot.joystick:main',
+            # Teleoperation Nodes
+            'joystick = g1pilot.teleoperation.joystick:main',
+            'joy_mux = g1pilot.teleoperation.joy_mux:main',
 
-            'dijkstra_planner = g1pilot.dijkstra_planner:main',
-            'nav2point = g1pilot.navigate_to_point:main',
-            'joy_mux = g1pilot.joy_mux:main',
-
-            'dummy_map = g1pilot.dummy_map:main'
+            # Navigation Nodes
+            'loco_client = g1pilot.navigation.loco_client:main',
+            'dijkstra_planner = g1pilot.navigation.dijkstra_planner:main',
+            'nav2point = g1pilot.navigation.navigate_to_point:main',
         ],
     },
 )

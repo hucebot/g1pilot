@@ -5,16 +5,16 @@ def generate_launch_description():
     return LaunchDescription([
         Node(
             package='g1pilot',
-            executable='joystick',
-            name='joystick',
+            executable='nav2point',
+            name='nav2point',
             parameters=[{'interface': 'eth0'}],
             output='screen'
         ),
 
         Node(
             package='g1pilot',
-            executable='joy_mux',
-            name='joy_mux',
+            executable='dijkstra_planner',
+            name='dijkstra_planner',
             parameters=[{'interface': 'eth0'}],
             output='screen'
         ),
