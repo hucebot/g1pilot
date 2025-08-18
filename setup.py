@@ -67,6 +67,7 @@ setup(
             'loco_client = g1pilot.navigation.loco_client:main',
             'dijkstra_planner = g1pilot.navigation.dijkstra_planner:main',
             'nav2point = g1pilot.navigation.navigate_to_point:main',
+            'dummy_map = g1pilot.navigation.create_map:main'
         ],
     },
 )
