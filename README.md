@@ -7,22 +7,21 @@ https://docs.ros.org/en/noetic/index.html)
 [![Ros Version](https://img.shields.io/badge/ROS2-Humble-green)](
 https://docs.ros.org/en/humble/index.html)
 
-G1Pilot is an open-source ROS2 package designed to provide full control of the Unitree G1 humanoid robot.
-It offers two flexible control modes:
+G1Pilot is an open‑source ROS 2 package for Unitree G1 humanoid robots. It exposes two complementary control paths—Joint (low‑level, per‑joint) and Cartesian (end‑effector) and continuously publishes core robot state for monitoring and visualization in RViz.
 
-    Joint Controller – for precise low-level joint control
+✳️ Use cases: teleoperation, manipulation research, motion analysis, and integration with higher‑level planners.
 
-    Cartesian Controller – for intuitive Cartesian-space manipulation
+## Highlights
 
-In addition to control capabilities, G1Pilot continuously publishes essential real-time robot states, including:
+- Dual control modes: switch between Joint and Cartesian control on the fly.
 
-    IMU data – for orientation and acceleration monitoring
+- Always‑on telemetry: IMU, odometry, and per‑motor feedback (temperature, voltage, position, velocity).
 
-    Odometry – for accurate localization
+- RViz‑ready: packaged URDF + RViz config for immediate visualization of the real robot.
 
-    Motor states – with temperature, voltage, position, and velocity feedback
+- Docker‑first workflow: reproducible build/run scripts for Ubuntu 22.04 + ROS 2 Humble.
 
-With native RViz visualization support and a ready-to-use Docker environment, G1Pilot is ideal for teleoperation, robotics research, and motion analysis, enabling seamless interaction between ROS2 and the Unitree G1.
+- Extensible: clear node boundaries and parameters make it easy to add behaviors or swap planners.
 
 
 ## Visual Overview
@@ -30,30 +29,11 @@ With native RViz visualization support and a ready-to-use Docker environment, G1
 |---------------------|--------------------|
 | <img src="https://github.com/hucebot/g1pilot/blob/main/images/joint_controller.gif" alt="Static Sensors" width="400"> | <img src="https://github.com/hucebot/g1pilot/blob/main/images/cartesian_controller.gif" alt="Moving Sensors" width="400"> |
 
-## 🚀 Features
-- 🎮 Dual Control Modes – Switch seamlessly between Joint and Cartesian controllers for maximum flexibility.
-
-- 📡 Real-Time State Publishing – Continuously publishes essential robot data:
-
-    - IMU orientation and acceleration
-
-    - Odometry for localization
-
-    - Detailed motor states (temperature, voltage, position, velocity)
-
-- 🐳 Docker Ready – Quickly build and run the package using provided Docker scripts.
-
-- 🔄 ROS2 Humble Support – Fully compatible with ROS2 Humble, ensuring smooth integration with modern robotics stacks.
-
-- 🛠️ Open-Source & Extensible – Designed for researchers and developers to easily customize and extend functionality.
-
 ## Table of Contents
 - [Pre-requisites](#pre-requisites)
-- [Installation](#installation)
+- [Quick Start](#quick-start)
 - [Nodes Overview](#-nodes-overview)
 - [Usage](#usage)
-- [Visual Overview](#visual-overview)
-- [Features](#-features)
 - [Contributing](#contributing)
 - [License](#license)
 
@@ -61,7 +41,8 @@ With native RViz visualization support and a ready-to-use Docker environment, G1
 - For visualization, you need to install the [g1pilot](https://github.com/hucebot/g1pilot) package in the same directory as this package.
 - Be connected to the robot via WiFi or Ethernet. **It's important to know which interface you are using.**
 
-## Installation
+## Quick Start
+### Docker (recommended)
 We prepare a docker image to build the package. You can use the following command to build the package, go the `docker` folder and run the following command:
 
 ```bash
@@ -72,6 +53,18 @@ Then, you can run the docker image with the following command:
 
 ```bash
 sh run.sh
+```
+
+### Package Layout
+
+``` bash
+.
+├─ g1pilot/                 # Python nodes
+├─ description_files/       # URDF/Xacro, meshes
+├─ config/                  # RViz and node configs
+├─ launch/                  # Launchers (RViz, controllers, state)
+├─ docker/                  # Build/run scripts
+└─ images/                  # README visuals
 ```
 
 ## 🧠 Nodes Overview
@@ -136,3 +129,24 @@ To control the robot, using the joint controller or the cartesian controller, yo
 ```bash
 ros2 launch g1pilot controller_launcher.launch.py
 ```
+
+To teleoperate the robot using the joystick, you can run the following command:
+```bash
+ros2 launch g1pilot teleoperation_launcher.launch.py
+```
+
+To apply autonomous navigation, you can run the following command:
+```bash
+ros2 launch g1pilot navigation_launcher.launch.py
+```
+
+## Contributing
+We welcome contributions to **G1Pilot**! If you have suggestions, improvements, or bug fixes, please follow these steps:
+
+1. Fork the repository.
+2. Create a new branch for your feature or bug fix.
+3. Make your changes and commit them with clear messages.
+4. Submit a pull request detailing your changes.
+
+## License
+BSD‑3‑Clause. See [LICENSE](LICENSE) for details.

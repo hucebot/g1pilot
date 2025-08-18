@@ -19,4 +19,12 @@ def generate_launch_description():
             output='screen'
         ),
 
+        Node(
+            package='g1pilot',
+            executable='joy_mux',
+            name='joy_mux',
+            parameters=[{'interface': 'eth0'}],
+            output='screen'
+        ),
+
     ])
