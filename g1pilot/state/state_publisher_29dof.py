@@ -94,7 +94,7 @@ class StatePublisher(Node):
 
         # message declarations
         com_tf = TransformStamped()
-        com_tf.header.frame_id = "world"
+        com_tf.header.frame_id = "odom"
         com_tf.child_frame_id = "pelvis"
         joint_state = JointState()
 

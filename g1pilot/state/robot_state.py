@@ -115,6 +115,8 @@ class RobotState(Node):
         self.odometry_pub = self.create_publisher(Odometry, f"{self.ns}/odometry", qos_profile)
         self.motor_state_pub = self.create_publisher(MotorStateList, f"{self.ns}/motor_state", qos_profile)
 
+        self.initial_odometry = None
+
         # TF broadcaster
         self.tf_broadcaster = TransformBroadcaster(self)
 
@@ -133,10 +135,10 @@ class RobotState(Node):
 
     # === ODOMETRY callbacks ===
     def callback_odometry_hf(self, msg: SportModeState_):
-        self._publish_odometry_from_sport(msg, frame_id="odom", child_frame_id="base_link")
+        self._publish_odometry_from_sport(msg, frame_id="odom", child_frame_id="pelvis")
 
 
-    def _publish_odometry_from_sport(self, est: SportModeState_, frame_id: str = "odom", child_frame_id: str = "base_link"):
+    def _publish_odometry_from_sport(self, est: SportModeState_, frame_id: str = "odom", child_frame_id: str = "pelvis"):
         now = self.get_clock().now().to_msg()
 
         # --- Odometry message ---
@@ -146,8 +148,15 @@ class RobotState(Node):
         odom.child_frame_id = child_frame_id
 
         # Pose
-        odom.pose.pose.position.x = float(est.position[0])
-        odom.pose.pose.position.y = float(est.position[1])
+        if self.initial_odometry is None:
+            self.initial_odometry = [
+                float(est.position[0]),
+                float(est.position[1]),
+                float(est.position[2]),
+
+            ]
+        odom.pose.pose.position.x = float(est.position[0]) - self.initial_odometry[0]
+        odom.pose.pose.position.y = float(est.position[1]) - self.initial_odometry[1]
         odom.pose.pose.position.z = float(est.position[2])
 
         # Unitree quaternion is [w,x,y,z] -> ROS is x,y,z,w

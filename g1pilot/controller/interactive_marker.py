@@ -25,12 +25,12 @@ class RightHandMarker(Node):
             return
         try:
             trans = self.tf_buffer.lookup_transform(
-                'world',
+                'odom',
                 'right_hand_point_contact',
                 rclpy.time.Time())
             
             int_marker = InteractiveMarker()
-            int_marker.header.frame_id = "world"
+            int_marker.header.frame_id = "odom"
             int_marker.name = "right_hand_goal"
             int_marker.description = "Right Hand Goal"
             int_marker.scale = 0.2

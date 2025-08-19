@@ -17,7 +17,7 @@ def clamp(v,a,b):
 class JoyMux(Node):
     def __init__(self):
         super().__init__('pure_pursuit_joy_mux')
-        self.declare_parameter('path_topic','/g1pilot/path_smooth')
+        self.declare_parameter('path_topic','/g1pilot/path')
         self.declare_parameter('odom_topic','/g1pilot/odometry')
         self.declare_parameter('manual_topic','/g1pilot/joy_manual')
         self.declare_parameter('out_topic','/g1pilot/joy')
@@ -58,6 +58,7 @@ class JoyMux(Node):
         self.auto_enabled=False
         self.last_manual=None
         self.t_last_manual=0.0
+        self.use_manual=False
 
     def cb_odom(self,msg:Odometry):
         self.x=float(msg.pose.pose.position.x)
@@ -78,15 +79,14 @@ class JoyMux(Node):
         if self.path:
             self.goal=self.path[-1]
 
-    def cb_manual(self,msg:Joy):
-        self.last_manual=msg
-        self.t_last_manual=time.time()
-        if len(msg.buttons)>4 and msg.buttons[4]==1:
-            self.auto_enabled=False
-            self.pub.publish(msg)
+    def cb_manual(self, msg: Joy):
+        self.last_manual = msg
+        self.t_last_manual = time.time()
 
     def cb_enable(self,msg:Bool):
         self.auto_enabled=bool(msg.data)
+        state = "ENABLED" if self.auto_enabled else "DISABLED"
+        self.get_logger().info(f"[AUTO] {state}")
 
     def nearest_index(self):
         if not self.path:
@@ -101,13 +101,15 @@ class JoyMux(Node):
     def target_point(self, idx):
         if not self.path:
             return (self.x,self.y), idx
-        L=self.L
-        start_s=self.cumlen[idx]
-        target_s=start_s+L
-        j=idx
-        while j+1<len(self.path) and self.cumlen[j]<target_s:
-            j+=1
+        L = self.L
+        start_s = self.cumlen[idx]
+        target_s = start_s + L
+        j = idx
+        # <= en vez de <
+        while j+1 < len(self.path) and self.cumlen[j] <= target_s:
+            j += 1
         return self.path[j], j
+
 
     def segment_yaw(self,j):
         if not self.path:
@@ -140,9 +142,9 @@ class JoyMux(Node):
         seg_dir=self.segment_yaw(jidx)
         yaw_err=self.wrap(seg_dir - self.yaw)
         wz=clamp(self.yaw_kp*yaw_err,-self.wz_lim,self.wz_lim)
-        ax1=clamp(-vx_b,-1.0,1.0)
-        ax0=clamp(-vy_b,-1.0,1.0)
-        ax3=clamp(-wz/self.wz_lim,-1.0,1.0)
+        ax1=clamp(-vx_b,-0.8,0.8)
+        ax0=clamp(-vy_b,-0.8,0.8)
+        ax3=clamp(-wz/self.wz_lim,-0.8,0.8)
         out=Joy()
         out.axes=[0.0]*8
         out.buttons=[0]*8
@@ -153,17 +155,17 @@ class JoyMux(Node):
         return out
 
     def loop(self):
-        now=time.time()
-        use_manual=self.last_manual is not None and (not self.auto_enabled or (now-self.t_last_manual)<self.man_win)
-        if use_manual:
-            self.pub.publish(self.last_manual)
-            return
+        now = time.time()
+        use_manual = (self.last_manual is not None) and (not self.auto_enabled or (now - self.t_last_manual) < self.man_win)
+
         if self.auto_enabled:
-            aj=self.build_auto_joy()
+            aj = self.build_auto_joy()
             self.pub.publish(aj)
             return
-        if self.last_manual:
+        
+        elif use_manual:
             self.pub.publish(self.last_manual)
+            return
 
 def main(args=None):
     rclpy.init(args=args)

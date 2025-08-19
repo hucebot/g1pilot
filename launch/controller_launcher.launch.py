@@ -7,7 +7,11 @@ def generate_launch_description():
             package='g1pilot',
             executable='joint_controller',
             name='joint_controller',
-            parameters=[{'interface': 'eth0'}],
+            parameters=[
+                {
+                    'interface': 'eth1',
+                    'use_robot': True,
+                }],
             output='screen'
         ),
 
@@ -15,7 +19,7 @@ def generate_launch_description():
             package='g1pilot',
             executable='cartesian_controller',
             name='cartesian_controller',
-            parameters=[{'interface': 'eth0'}],
+            parameters=[{'interface': 'eth1'}],
             output='screen'
         ),
 
@@ -23,7 +27,7 @@ def generate_launch_description():
             package='g1pilot',
             executable='interactive_marker',
             name='interactive_marker',
-            parameters=[{'interface': 'eth0'}],
+            parameters=[{'interface': 'eth1'}],
             output='screen'
         ),
 

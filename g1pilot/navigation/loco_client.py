@@ -34,10 +34,14 @@ class G1LocoClient(Node):
         self.balanced = False
         self.prev_buttons = {}
 
+        self.declare_parameter('interface', 'eth1')
+        interface = self.get_parameter('interface').get_parameter_value().string_value
+
         if self.using_robot:
-            ChannelFactoryInitialize(0, 'eth0')
+            ChannelFactoryInitialize(0, interface)
             self.robot = LocoClient()
             self.robot.SetTimeout(10.0)
+            self.robot.SetFsmId(4)
             self.robot.Init()
             self.robot.Damp()
             self.current_id = self.get_fsm_id()

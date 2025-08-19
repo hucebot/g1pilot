@@ -69,7 +69,6 @@ class Nav2Point(Node):
         self.path_frame = msg.header.frame_id if msg.header.frame_id else self.frame_id
         self.idx = 0
         if self.path:
-            print(f"Received path with {len(self.path)} waypoints in frame '{self.path_frame}'")
             self.publish_goal_marker(self.path[-1][0], self.path[-1][1])
 
     def publish_goal_marker(self, gx, gy):

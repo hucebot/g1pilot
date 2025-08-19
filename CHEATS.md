@@ -1,5 +1,10 @@
 ## CHEATS:
 
+###  PUBLISH GOAL
+```bash
+ros2 topic pub /g1pilot/goal geometry_msgs/PointStamped "{header: {frame_id: 'odom'}, point: {x: 1.0, y: 0.0, z: 0.0}}"
+```
+
 ### STANDARD SEQUENCE FOR UNITREE ROBOT
 ```bash
 1.- Damp → joints relaxed so you can align the feet.

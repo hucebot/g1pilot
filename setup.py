@@ -55,7 +55,7 @@ setup(
             'state_publisher_29dof = g1pilot.state.state_publisher_29dof:main',
 
             # Controllers Nodes
-            'cartesian_controller = g1pilot.cartesian_controller:main',
+            'cartesian_controller = g1pilot.controller.cartesian_controller:main',
             'joint_controller = g1pilot.controller.joint_controller:main',
             'interactive_marker = g1pilot.controller.interactive_marker:main',
 

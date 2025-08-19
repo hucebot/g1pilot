@@ -26,7 +26,7 @@ def generate_launch_description():
             package='g1pilot',
             executable='robot_state',
             name='robot_state',
-            parameters=[{'interface': 'eth0'}],
+            parameters=[{'interface': 'eth1'}],
             output='screen'
         ),
 
