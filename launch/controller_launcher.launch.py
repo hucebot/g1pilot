@@ -22,13 +22,4 @@ def generate_launch_description():
             parameters=[{'interface': 'eth1'}],
             output='screen'
         ),
-
-        Node(
-            package='g1pilot',
-            executable='interactive_marker',
-            name='interactive_marker',
-            parameters=[{'interface': 'eth1'}],
-            output='screen'
-        ),
-
     ])

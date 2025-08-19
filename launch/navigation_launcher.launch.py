@@ -26,4 +26,12 @@ def generate_launch_description():
             parameters=[{'interface': 'eth1'}],
             output='screen'
         ),
+
+        Node(
+            package='g1pilot',
+            executable='create_map',
+            name='create_map',
+            parameters=[{'interface': 'eth1'}],
+            output='screen'
+        ),
     ])
