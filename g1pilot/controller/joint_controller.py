@@ -129,6 +129,7 @@ class JointController(Node, QtWidgets.QWidget):
         self.update_mode_machine_ = False
         self.is_estop = False
         self.alpha = 0.2
+        self.sliders = {}
 
         self._sliders_initialized = False
         self._initial_js_done = False
