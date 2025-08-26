@@ -59,6 +59,8 @@ RUN apt install -y \
 
 RUN apt install gz-tools  || apt install ign-tools
 
+RUN pip install casadi
+
 RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /root/.bashrc && \
     echo "source /ros2_ws/install/setup.bash" >> /root/.bashrc
 

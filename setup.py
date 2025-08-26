@@ -58,6 +58,7 @@ setup(
             'cartesian_controller = g1pilot.controller.cartesian_controller:main',
             'joint_controller = g1pilot.controller.joint_controller:main',
             'interactive_marker = g1pilot.controller.interactive_marker:main',
+            'joint_locomotion = g1pilot.controller.joint_locomotion:main',
 
             # Teleoperation Nodes
             'joystick = g1pilot.teleoperation.joystick:main',
