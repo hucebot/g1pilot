@@ -59,7 +59,9 @@ RUN apt install -y \
 
 RUN apt install gz-tools  || apt install ign-tools
 
-RUN pip install casadi
+RUN pip install casadi 
+RUN pip install sshkeyboard
+RUN pip install logging-mp
 
 RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /root/.bashrc && \
     echo "source /ros2_ws/install/setup.bash" >> /root/.bashrc
