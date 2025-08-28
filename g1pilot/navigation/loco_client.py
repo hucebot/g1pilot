@@ -19,7 +19,7 @@ from unitree_sdk2py.g1.loco.g1_loco_api import (
     ROBOT_API_ID_LOCO_GET_FSM_MODE,
 )
 
-from g1pilot.utils.g1_arm_controller import G1_29_ArmController
+from g1pilot.utils.g1_arm_controller_ui import G1_29_ArmController
 
 
 def _rpc_get_int(client, api_id):
@@ -44,6 +44,8 @@ class G1LocoClient(Node):
 
         self.declare_parameter('interface', 'eth1')
         interface = self.get_parameter('interface').get_parameter_value().string_value
+        self.declare_parameter('arm_controlled', 'both') # Options: 'left', 'right', 'both'
+        self.arm_controlled = self.get_parameter('arm_controlled').get_parameter_value().string_value
 
         ChannelFactoryInitialize(0, interface)
         self.robot = LocoClient()
@@ -55,7 +57,7 @@ class G1LocoClient(Node):
         self.current_mode = self.get_fsm_mode()
         self.get_logger().info(f"Current FSM ID: {self.current_id}, Mode: {self.current_mode}")
 
-        self.arm_control = G1_29_ArmController(ui_bridge=self.ui_bridge)
+        self.arm_control = G1_29_ArmController(ui_bridge=self.ui_bridge, controlled_arms=self.arm_controlled)
 
         self.create_subscription(Bool, 'emergency_stop', self.emergency_callback, 10)
         self.create_subscription(Bool, 'start_balancing', self.start_balancing_callback, 10)

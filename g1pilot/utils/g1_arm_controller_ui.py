@@ -145,12 +145,69 @@ JOINT_LIMITS_RAD = {
     28:(-1.614429558, 1.614429558), # R_WRIST_YAW
 }
 RIGHT_JOINT_INDICES_LIST = [22,23,24,25,26,27,28]
+LEFT_JOINT_INDICES_LIST  = [15,16,17,18,19,20,21]
 
-def clamp_right(q7):
+JOINT_GROUPS = {
+    "left":  LEFT_JOINT_INDICES_LIST,
+    "right": RIGHT_JOINT_INDICES_LIST,
+    "both":  LEFT_JOINT_INDICES_LIST + RIGHT_JOINT_INDICES_LIST,
+}
+
+JOINT_NAMES_LEFT = [
+    "L Shoulder Pitch", "L Shoulder Roll", "L Shoulder Yaw",
+    "L Elbow", "L Wrist Roll", "L Wrist Pitch", "L Wrist Yaw"
+]
+JOINT_NAMES_RIGHT = [
+    "R Shoulder Pitch", "R Shoulder Roll", "R Shoulder Yaw",
+    "R Elbow", "R Wrist Roll", "R Wrist Pitch", "R Wrist Yaw"
+]
+
+def _names_for(group):
+    if group == "left":  return JOINT_NAMES_LEFT
+    if group == "right": return JOINT_NAMES_RIGHT
+    if group == "both":  return JOINT_NAMES_LEFT + JOINT_NAMES_RIGHT
+    raise ValueError(f"Unknown group {group}")
+
+JOINTID_TO_DUALINDEX = {}
+for i, jid in enumerate([
+    G1_29_JointArmIndex.kLeftShoulderPitch,
+    G1_29_JointArmIndex.kLeftShoulderRoll,
+    G1_29_JointArmIndex.kLeftShoulderYaw,
+    G1_29_JointArmIndex.kLeftElbow,
+    G1_29_JointArmIndex.kLeftWristRoll,
+    G1_29_JointArmIndex.kLeftWristPitch,
+    G1_29_JointArmIndex.kLeftWristyaw,
+    G1_29_JointArmIndex.kRightShoulderPitch,
+    G1_29_JointArmIndex.kRightShoulderRoll,
+    G1_29_JointArmIndex.kRightShoulderYaw,
+    G1_29_JointArmIndex.kRightElbow,
+    G1_29_JointArmIndex.kRightWristRoll,
+    G1_29_JointArmIndex.kRightWristPitch,
+    G1_29_JointArmIndex.kRightWristYaw,
+]):
+    JOINTID_TO_DUALINDEX[jid.value] = i
+
+def clamp_joint_vector(q_vals, joint_id_list):
     out = []
-    for ii, jidx in enumerate(RIGHT_JOINT_INDICES_LIST):
+    for ii, jidx in enumerate(joint_id_list):
         lo, hi = JOINT_LIMITS_RAD[jidx]
-        out.append(float(np.clip(q7[ii], lo, hi)))
+        out.append(float(np.clip(q_vals[ii], lo, hi)))
+    return np.array(out, dtype=float)
+
+def clamp_right(q):
+    if len(q) == 7:
+        return clamp_joint_vector(q, RIGHT_JOINT_INDICES_LIST)
+    elif len(q) == 14:
+        return clamp_joint_vector(q, JOINT_GROUPS["both"])
+    else:
+        raise ValueError(f"Unexpected joint vector length: {len(q)}")
+
+
+def clamp_joint_vector(q, joint_id_list):
+    out = []
+    for ii, jidx in enumerate(joint_id_list):
+        lo, hi = JOINT_LIMITS_RAD[jidx]
+        out.append(float(np.clip(q[ii], lo, hi)))
     return np.array(out, dtype=float)
 
 class DataBuffer:
@@ -177,32 +234,29 @@ class UiBridge(QtCore.QObject):
         except Exception as e:
             print(f"[UiBridge] Error callable: {e}", flush=True)
 
-class ArmRightGUI(QtWidgets.QWidget):
+class ArmGUI(QtWidgets.QWidget):
     valuesChanged = QtCore.pyqtSignal(object)
 
-    def __init__(self, get_initial_q_radians_callable, parent=None):
+    def __init__(self, title, joint_ids, joint_names, get_initial_q_radians_callable, parent=None):
         super().__init__(parent)
-        self.setWindowTitle("G1 – Right Arm Control")
-        self.setMinimumWidth(480)
+        self.setWindowTitle(title)
+        self.setMinimumWidth(520)
 
-        self.joint_ids = RIGHT_JOINT_INDICES_LIST[:]
-        self.joint_names = [
-            "R Shoulder Pitch", "R Shoulder Roll", "R Shoulder Yaw",
-            "R Elbow", "R Wrist Roll", "R Wrist Pitch", "R Wrist Yaw"
-        ]
+        self.joint_ids   = joint_ids[:]
+        self.joint_names = joint_names[:]
 
         layout = QtWidgets.QVBoxLayout(self)
         self.sliders = []
         self.value_labels = []
 
-        init_q7 = get_initial_q_radians_callable() or [0.0]*7
-        if len(init_q7) != 7:
-            init_q7 = [0.0]*7
-        init_q7 = clamp_right(init_q7)
+        init_q = get_initial_q_radians_callable() or [0.0]*len(self.joint_ids)
+        if len(init_q) != len(self.joint_ids):
+            init_q = [0.0]*len(self.joint_ids)
+        init_q = clamp_joint_vector(init_q, self.joint_ids)
 
         for i, (name, jidx) in enumerate(zip(self.joint_names, self.joint_ids)):
             row = QtWidgets.QHBoxLayout()
-            lab = QtWidgets.QLabel(name); lab.setFixedWidth(160)
+            lab = QtWidgets.QLabel(name); lab.setFixedWidth(180)
 
             lo_rad, hi_rad = JOINT_LIMITS_RAD[jidx]
             lo_deg = int(round(math.degrees(lo_rad)))
@@ -214,7 +268,7 @@ class ArmRightGUI(QtWidgets.QWidget):
             sld.setTickInterval(max(5, (hi_deg-lo_deg)//12))
             sld.setTickPosition(QtWidgets.QSlider.TickPosition.TicksBelow)
 
-            deg0 = int(round(math.degrees(init_q7[i])))
+            deg0 = int(round(math.degrees(init_q[i])))
             deg0 = max(lo_deg, min(hi_deg, deg0))
             sld.setValue(deg0)
 
@@ -245,14 +299,14 @@ class ArmRightGUI(QtWidgets.QWidget):
         for sld, jidx in zip(self.sliders, self.joint_ids):
             lo_deg = int(round(math.degrees(JOINT_LIMITS_RAD[jidx][0])))
             hi_deg = int(round(math.degrees(JOINT_LIMITS_RAD[jidx][1])))
-            center = 0 if lo_deg <= 0 <= hi_deg else int((lo_deg+hi_deg)/2)
+            center = 0 if lo_deg <= 0 <= hi_deg else int((lo_deg + hi_deg) / 2)
             sld.setValue(center)
 
-    def update_from_robot_pose(self, q_right_rad):
-        if not q_right_rad or len(q_right_rad) != 7:
+    def update_from_robot_pose(self, q_rad_in_gui_order):
+        if not q_rad_in_gui_order or len(q_rad_in_gui_order) != len(self.joint_ids):
             return
-        q_right_rad = clamp_right(q_right_rad)
-        for i, (val, jidx) in enumerate(zip(q_right_rad, self.joint_ids)):
+        q_rad_in_gui_order = clamp_joint_vector(q_rad_in_gui_order, self.joint_ids)
+        for i, (val, jidx) in enumerate(zip(q_rad_in_gui_order, self.joint_ids)):
             lo_deg = int(round(math.degrees(JOINT_LIMITS_RAD[jidx][0])))
             hi_deg = int(round(math.degrees(JOINT_LIMITS_RAD[jidx][1])))
             deg = int(round(math.degrees(val)))
@@ -264,7 +318,7 @@ class ArmRightGUI(QtWidgets.QWidget):
 
 
 class G1_29_ArmController:
-    def __init__(self, ui_bridge: QtCore.QObject):
+    def __init__(self, ui_bridge: QtCore.QObject, controlled_arms: str = 'right'):
         self.motor_state = [MotorState() for _ in range(35)]
 
         self.topic_motion_cmd = 'rt/arm_sdk'
@@ -291,6 +345,18 @@ class G1_29_ArmController:
 
         self._bridge = ui_bridge
         self._gui = None
+
+        self.controlled_arms = controlled_arms.lower().strip()
+        if self.controlled_arms not in ("right", "left", "both"):
+            self.controlled_arms = "right"
+
+        self.gui_joint_ids   = JOINT_GROUPS[self.controlled_arms]
+        self.gui_joint_names = _names_for(self.controlled_arms)
+        self.gui_title       = {
+            "right": "G1 – Right Arm Control",
+            "left":  "G1 – Left Arm Control",
+            "both":  "G1 – Both Arms Control",
+        }[self.controlled_arms]
 
         self.lowstate_subscriber = ChannelSubscriber(self.topic_low_cmd, hg_LowState)
         self.lowstate_subscriber.Init()
@@ -328,6 +394,21 @@ class G1_29_ArmController:
         self.publish_thread = threading.Thread(target=self._ctrl_motor_state, daemon=True)
         self.publish_thread.start()
 
+    def _get_gui_initial_q(self):
+        try:
+            with self.ctrl_lock:
+                base14 = self.q_target.copy() if hasattr(self, "q_target") and len(self.q_target) == 14 \
+                         else self.get_current_dual_arm_q().copy()
+        except Exception:
+            base14 = self.get_current_dual_arm_q().copy()
+
+        out = []
+        for jid in self.gui_joint_ids:
+            dual_idx = JOINTID_TO_DUALINDEX[jid]
+            out.append(float(base14[dual_idx]))
+        return out
+
+
     def _get_right_arm_current_q(self):
         try:
             with self.ctrl_lock:
@@ -342,13 +423,19 @@ class G1_29_ArmController:
         def _make_or_show():
             print("[ArmGUI] _make_or_show()", flush=True)
             if self._gui is None:
-                self._gui = ArmRightGUI(self._get_right_arm_current_q)
+                self._gui = ArmGUI(
+                    title=self.gui_title,
+                    joint_ids=self.gui_joint_ids,
+                    joint_names=self.gui_joint_names,
+                    get_initial_q_radians_callable=self._get_gui_initial_q
+                )
                 self._gui.valuesChanged.connect(self._on_gui_values)
             self._gui.move(100, 100)
             self._gui.show(); self._gui.raise_(); self._gui.activateWindow()
 
         print("[ArmGUI] scheduling GUI create/show (via bridge)", flush=True)
         self._bridge.runSignal.emit(_make_or_show)
+
 
     def _close_gui_if_needed(self):
         if self._gui is None:
@@ -357,12 +444,16 @@ class G1_29_ArmController:
         self._bridge.runSignal.emit(self._gui.hide)
 
     def _on_gui_values(self, radians_list):
-        if len(radians_list) != 7:
+        if len(radians_list) != len(self.gui_joint_ids):
             return
         with self.ctrl_lock:
-            self.q_target[7:14] = np.array(radians_list, dtype=float)
+            if not hasattr(self, "q_target") or len(self.q_target) != 14:
+                self.q_target = self.get_current_dual_arm_q().copy()
 
-    # -------------------- API externa --------------------
+            for val, jid in zip(radians_list, self.gui_joint_ids):
+                dual_idx = JOINTID_TO_DUALINDEX[jid]
+                self.q_target[dual_idx] = float(val)
+
     def set_control_mode(self, enabled: bool):
         self.control_mode = enabled
         print(f"[ArmGUI] set_control_mode -> {enabled}", flush=True)
@@ -471,8 +562,6 @@ class G1_29_ArmController:
                     self.msg.motor_cmd[G1_29_JointIndex.kNotUsedJoint0].q = 1.0
                 except Exception:
                     pass
-
-                # --- BRAZOS ---
                 for idx, jid in enumerate(G1_29_JointArmIndex):
                     self.msg.motor_cmd[jid].mode = 1
                     self.msg.motor_cmd[jid].q   = float(cliped[idx])
@@ -515,7 +604,7 @@ class G1_29_ArmController:
 def main():
     app = QtWidgets.QApplication([])
     bridge = UiBridge()
-    ctrl = G1_29_ArmController(bridge)
+    ctrl = G1_29_ArmController(bridge, controlled_arms='right')
     ctrl.set_control_mode(True)
     app.exec_()
 
