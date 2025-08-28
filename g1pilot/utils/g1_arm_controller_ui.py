@@ -385,7 +385,7 @@ class G1_29_ArmController:
         self.control_mode = False
 
         self.all_motor_q = None
-        self.arm_velocity_limit = 20.0
+        self.arm_velocity_limit = 2.0
         self.control_dt = 1.0 / 250.0
 
         self._last_cmd_q = None

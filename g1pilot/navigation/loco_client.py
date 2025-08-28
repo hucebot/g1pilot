@@ -19,7 +19,7 @@ from unitree_sdk2py.g1.loco.g1_loco_api import (
     ROBOT_API_ID_LOCO_GET_FSM_MODE,
 )
 
-from g1pilot.utils.g1_arm_controller_ui import G1_29_ArmController
+from g1pilot.utils.g1_arm_controller import G1_29_ArmController
 
 
 def _rpc_get_int(client, api_id):
@@ -46,6 +46,18 @@ class G1LocoClient(Node):
         interface = self.get_parameter('interface').get_parameter_value().string_value
         self.declare_parameter('arm_controlled', 'both') # Options: 'left', 'right', 'both'
         self.arm_controlled = self.get_parameter('arm_controlled').get_parameter_value().string_value
+        self.declare_parameter('enable_arm_ui', False)
+        self.enable_arm_ui = self.get_parameter('enable_arm_ui').get_parameter_value().bool_value
+
+        self.declare_parameter('ik_use_waist', False)
+        self.declare_parameter('ik_alpha', 0.2)
+        self.declare_parameter('ik_max_dq_step', 0.05)
+        self.declare_parameter('arm_velocity_limit', 2.0)
+
+        ik_use_waist = self.get_parameter('ik_use_waist').get_parameter_value().bool_value
+        ik_alpha = float(self.get_parameter('ik_alpha').value)
+        ik_max_dq_step = float(self.get_parameter('ik_max_dq_step').value)
+        arm_vel_lim = float(self.get_parameter('arm_velocity_limit').value)
 
         ChannelFactoryInitialize(0, interface)
         self.robot = LocoClient()
@@ -57,7 +69,16 @@ class G1LocoClient(Node):
         self.current_mode = self.get_fsm_mode()
         self.get_logger().info(f"Current FSM ID: {self.current_id}, Mode: {self.current_mode}")
 
-        self.arm_control = G1_29_ArmController(ui_bridge=self.ui_bridge, controlled_arms=self.arm_controlled)
+        self.arm_control = G1_29_ArmController(
+            ui_bridge=self.ui_bridge,
+            controlled_arms=self.arm_controlled,
+            show_ui=self.enable_arm_ui,
+            ros_node=self,
+        )
+        self.arm_control._ik_use_waist = ik_use_waist
+        self.arm_control._ik_alpha = ik_alpha
+        self.arm_control._ik_max_dq_step = ik_max_dq_step
+        self.arm_control.arm_velocity_limit = arm_vel_lim
 
         self.create_subscription(Bool, 'emergency_stop', self.emergency_callback, 10)
         self.create_subscription(Bool, 'start_balancing', self.start_balancing_callback, 10)
