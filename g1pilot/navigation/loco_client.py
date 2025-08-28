@@ -63,7 +63,6 @@ class G1LocoClient(Node):
         self.create_subscription(Bool, 'start_balancing', self.start_balancing_callback, 10)
         self.create_subscription(Joy, '/g1pilot/joy', self.joystick_callback, 10)
 
-    # -------- helper logs 1-vez --------
     def log_once_attr(self, level, msg, attr):
         if hasattr(self, attr):
             return
