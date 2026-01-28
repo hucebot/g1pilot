@@ -1,0 +1,189 @@
+# G1Pilot Troubleshooting Guide
+
+This document covers common issues when setting up G1Pilot and how to resolve them.
+
+## Table of Contents
+- [FSM ID Returns None or Error Code 3102](#fsm-id-returns-none-or-error-code-3102)
+- [CRC Library Missing Error](#crc-library-missing-error)
+- [Saving Docker Image Changes](#saving-docker-image-changes)
+
+---
+
+## FSM ID Returns None or Error Code 3102
+
+### Symptom
+When running G1Pilot, the `loco_client` node shows:
+```
+[loco_client]: Current FSM ID: None, Mode: None
+```
+
+Or when testing the SDK directly:
+```
+[ClientStub] send request error. id: xxxxx
+Error getting FSM ID, code: 3102
+```
+
+### Cause
+The Unitree SDK version included in the Docker image (`7c661d27`) has an RPC communication bug that prevents it from communicating with the robot's locomotion controller.
+
+### Solution
+
+1. **Mount your working SDK** into the Docker container by adding this line to `docker/run.sh`:
+   ```bash
+   -v /path/to/your/working/unitree_sdk2_python:/unitree_sdk2_python_local \
+   ```
+
+2. **Inside Docker**, replace the broken SDK:
+   ```bash
+   # Remove the broken SDK
+   pip uninstall unitree-sdk2py -y
+   rm -rf /usr/local/lib/python3.10/dist-packages/unitree_sdk2py*
+   rm -rf /unitree_sdk2_python
+
+   # Install your working SDK
+   pip install /unitree_sdk2_python_local
+   ```
+
+3. **Copy missing modules** (the pip install may not include all directories):
+   ```bash
+   # Copy any missing modules (b2, g1, lib, etc.)
+   cp -r /unitree_sdk2_python_local/unitree_sdk2py/b2 /usr/local/lib/python3.10/dist-packages/unitree_sdk2py/
+   cp -r /unitree_sdk2_python_local/unitree_sdk2py/g1 /usr/local/lib/python3.10/dist-packages/unitree_sdk2py/
+   cp -r /unitree_sdk2_python_local/unitree_sdk2py/utils/lib /usr/local/lib/python3.10/dist-packages/unitree_sdk2py/utils/
+   ```
+
+4. **Verify the fix**:
+   ```bash
+   cd /ros2_ws
+   python3 << 'EOF'
+   import json
+   from unitree_sdk2py.core.channel import ChannelFactoryInitialize
+   from unitree_sdk2py.g1.loco.g1_loco_client import LocoClient
+   from unitree_sdk2py.g1.loco.g1_loco_api import ROBOT_API_ID_LOCO_GET_FSM_ID
+
+   ChannelFactoryInitialize(0, "enp5s0")  # Replace with your interface
+   loco_client = LocoClient()
+   loco_client.SetTimeout(10.0)
+   loco_client.Init()
+
+   code, data = loco_client._Call(ROBOT_API_ID_LOCO_GET_FSM_ID, "{}")
+   print(f"Code: {code}, Data: {data}")
+   EOF
+   ```
+
+   Expected output:
+   ```
+   Code: 0, Data: {"data":0}
+   ```
+
+5. **Save the changes** - see [Saving Docker Image Changes](#saving-docker-image-changes)
+
+---
+
+## CRC Library Missing Error
+
+### Symptom
+The `arm_controller` node crashes with:
+```
+OSError: /usr/local/lib/python3.10/dist-packages/unitree_sdk2py/utils/lib/crc_amd64.so: cannot open shared object file: No such file or directory
+```
+
+### Cause
+The SDK's native CRC library wasn't copied during installation.
+
+### Solution
+
+Copy the missing library directory from your working SDK:
+
+```bash
+cp -r /unitree_sdk2_python_local/unitree_sdk2py/utils/lib /usr/local/lib/python3.10/dist-packages/unitree_sdk2py/utils/
+```
+
+Verify:
+```bash
+ls -la /usr/local/lib/python3.10/dist-packages/unitree_sdk2py/utils/lib/
+```
+
+You should see `crc_amd64.so` (or `crc_arm64.so` on ARM systems).
+
+---
+
+## Saving Docker Image Changes
+
+After fixing SDK issues inside the Docker container, you need to commit the changes to persist them.
+
+### Steps
+
+1. **Keep the Docker container running** (don't exit yet)
+
+2. **Open a new terminal on your host machine** and run:
+   ```bash
+   # Find your container ID
+   docker ps
+   
+   # Commit the container to the image
+   docker commit <container_id> g1pilot:latest
+   
+   # Or use this one-liner
+   docker commit $(docker ps -q) g1pilot:latest
+   ```
+
+3. **Verify the commit**:
+   ```bash
+   docker images | grep g1pilot
+   ```
+
+4. **Now you can exit the Docker container**. The next time you run `sh run.sh`, your changes will persist.
+
+### Optional: Remove the SDK Mount
+
+After committing, you can remove the SDK mount line from `docker/run.sh` since the SDK is now baked into the image:
+
+```bash
+# Remove this line from run.sh:
+-v /path/to/your/working/unitree_sdk2_python:/unitree_sdk2_python_local \
+```
+
+---
+
+## Network Configuration
+
+### LiDAR Configuration
+
+If the LiDAR fails to initialize with `bind failed`, update `config/livox_mid.json`:
+
+1. Find your PC's IP on the robot network:
+   ```bash
+   ip addr show enp5s0 | grep "inet "
+   ```
+
+2. Update all `host_net_info` IP addresses in `config/livox_mid.json` to match your PC's IP:
+   ```json
+   "host_net_info" : {
+     "cmd_data_ip" : "YOUR_PC_IP",
+     "push_msg_ip": "YOUR_PC_IP",
+     "point_data_ip": "YOUR_PC_IP",
+     "imu_data_ip" : "YOUR_PC_IP",
+     ...
+   }
+   ```
+
+### Network Interface
+
+Update the interface name in `config/config.yaml` to match your Ethernet interface:
+```yaml
+general:
+  interface: enp5s0  # Change to your interface (e.g., eth0, eno1)
+```
+
+---
+
+## Quick Reference
+
+| Issue | Quick Fix |
+|-------|-----------|
+| FSM ID: None | Replace SDK + copy missing modules |
+| Error code 3102 | SDK RPC bug - need working SDK version |
+| crc_amd64.so missing | Copy utils/lib directory |
+| LiDAR bind failed | Update livox_mid.json with your PC IP |
+| Changes lost after restart | Run `docker commit` |
