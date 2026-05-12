@@ -22,7 +22,20 @@ RUN python3 -m venv /home/.base
 RUN echo "source /home/.base/bin/activate" >> ~/.bashrc
 SHELL ["bash", "-ic"]
 
-RUN pip install --upgrade ttictoc setuptools hhcm-forest && forest init
+# RUN pip install --upgrade ttictoc setuptools hhcm-forest && forest init
+# We split the install to ensure setuptools (and its resources) are fully 
+# present before the shell tries to execute the 'forest' entrypoint.
+# Ensure the virtualenv is ready and core tools are updated
+# 1. Update core tools
+RUN pip install --upgrade pip wheel
+
+# 2. Install the specific version of setuptools that forest needs, 
+#    along with the missing dependencies
+RUN pip install "setuptools<70.0.0" jinja2 typeguard ttictoc hhcm-forest
+
+# 3. Initialize forest
+RUN forest init
+
 RUN echo "source $PWD/setup.bash" >> ~/.bashrc
 SHELL ["bash", "-ic"]
 
@@ -35,7 +48,6 @@ RUN forest grow matlogger2 --verbose --jobs 4 --pwd user
 # HPP-FCL
 WORKDIR /home/forest_ws/src
 RUN git clone https://github.com/humanoid-path-planner/hpp-fcl.git && \
-    ls -a && \
     cd /home/forest_ws/src/hpp-fcl && \
     git checkout 45e60ca7ba81e5394605f8c1097c016245d221c2 && \
     git submodule init && \
@@ -48,9 +60,9 @@ RUN git clone https://github.com/humanoid-path-planner/hpp-fcl.git && \
     make -j8 && \
     make install
 
-## PINOCCHIO
+## PINOCCHIO (pinned to v2.7.1 for hpp-fcl + xbot2_interface compat)
 WORKDIR /home/forest_ws/src
-RUN git clone -b devel https://github.com/stack-of-tasks/pinocchio.git && \
+RUN git clone -b v2.7.1 https://github.com/stack-of-tasks/pinocchio.git && \
     cd /home/forest_ws/src/pinocchio && \
     git submodule init && \
     git submodule update && \
@@ -61,7 +73,6 @@ RUN git clone -b devel https://github.com/stack-of-tasks/pinocchio.git && \
     cmake -DCMAKE_INSTALL_PREFIX:STRING=/home/forest_ws/install -DCMAKE_BUILD_TYPE:STRING=Release -DBUILD_WITH_URDF_SUPPORT=ON -DBUILD_WITH_COLLISION_SUPPORT=ON -DBUILD_TESTING=FALSE -DBUILD_PYTHON_INTERFACE=OFF ../../src/pinocchio && \
     make -j4 && \
     make install
-
 
 # xbot2_interface
 WORKDIR /home/forest_ws/src
@@ -247,7 +258,7 @@ RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /root/.bashrc && \
 
 RUN echo "export LD_LIBRARY_PATH=/usr/local/lib:\$LD_LIBRARY_PATH" >> /root/.bashrc
 
-RUN echo "export ROS_DOMAIN_ID=1" >> /root/.bashrc
+# RUN echo "export ROS_DOMAIN_ID=1" >> /root/.bashrc
 
 # Also install in the venv, because rosidl_adapter may run with /home/.base/bin/python3
 RUN /home/.base/bin/pip install -U pip setuptools wheel && \
@@ -326,10 +337,18 @@ RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /root/.bashrc && \
 RUN echo "export LD_LIBRARY_PATH=/usr/local/lib:\$LD_LIBRARY_PATH" >> /root/.bashrc
 
 WORKDIR /
-RUN git clone https://github.com/lnotspotl/unitree_sdk2_python.git \
+RUN git clone https://github.com/unitreerobotics/unitree_sdk2_python.git \
  && cd unitree_sdk2_python \
- && git checkout 7c661d27f4ae064ffd0dd633fd9d5b518ef0b508 \
+ && git checkout 794fb2b3fd9165fd245a7b568698d9e97d8ac0a0 \
  && /home/.base/bin/pip install -e .
+
+WORKDIR /
+RUN git clone https://github.com/unitreerobotics/unitree_sdk2.git \
+ && cd unitree_sdk2 \
+ && mkdir build && cd build \
+ && cmake .. \
+ && make -j$(nproc) \
+ && make install
 
 WORKDIR /ros2_ws/src
 RUN git clone https://github.com/Livox-SDK/livox_ros_driver2.git /ros2_ws/src/livox_ros_driver2
@@ -366,7 +385,7 @@ RUN rm -rf /ros2_ws/src/unitree_ros2/cyclonedds_ws/src/unitree
 
 WORKDIR /ros2_ws
 RUN . /opt/ros/${ROS_DISTRO}/setup.sh && \
-    /home/.base/bin/python3 -m colcon build --cmake-args -DROS_EDITION=ROS2 -DHUMBLE_ROS=humble
+    /home/.base/bin/python3 -m colcon build --cmake-args -DROS_EDITION=ROS2 -DDISTRO_ROS=${ROS_DISTRO}
 
 RUN pip install pyqt6 pin meshcat evdev
 RUN apt-get update && apt-get install -y \
@@ -378,8 +397,8 @@ RUN apt-get update && apt-get install -y \
     libxcb-render-util0 \
     libxcb-xinerama0 \
     libxcb-xinput0 \
-    libxcb-shape0
-
+    libxcb-shape0 \
+    inetutils-ping
 
 RUN apt update
 RUN apt install ros-${ROS_DISTRO}-rosidl-default-generators -y

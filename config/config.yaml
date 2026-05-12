@@ -2,7 +2,7 @@ general:
   use_sim_time: false
   use_robot: true
   publish_joint_states: true
-  interface:  # set via G1_INTERFACE env var
+  interface: eno2 # set via G1_INTERFACE env var
   sim_rate_hz: 50.0
   arm_controlled: both
   enable_arm_ui: true
