@@ -179,3 +179,7 @@ GitHub: [CDonosoK](https://github.com/CDonosoK)
 
 ## License
 BSD‑3‑Clause. See [LICENSE](LICENSE) for details.
+
+## Note
+Using unitreerobotics/unitree_sdk2_python commit 794fb2b3fd9165fd245a7b568698d9e97d8ac0a0 in the docker file
+
