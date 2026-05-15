@@ -45,7 +45,7 @@ setup(
 
         # Configuration Files
         (f'share/{package_name}/config',
-            expand(['config/*.yaml'])),
+            expand(['config/*.yaml', 'config/*.pgm'])),
 
         # RViz
         (f'share/{package_name}/rviz', expand(['rviz/*.rviz'])),

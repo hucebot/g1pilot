@@ -195,7 +195,7 @@ class Nav2Point(Node):
             axes[1] = ax1
             axes[0] = ax0
             axes[2] = ax3
-            buttons[8] = 1
+            buttons[7] = 1
 
             joy.axes = axes
             joy.buttons = buttons

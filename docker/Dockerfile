@@ -417,7 +417,8 @@ RUN pip install --upgrade pyrealsense2 numpy opencv-python
 RUN apt install -y \
  ros-${ROS_DISTRO}-mola \
  ros-${ROS_DISTRO}-mola-state-estimation \
- ros-${ROS_DISTRO}-mola-lidar-odometry
+ ros-${ROS_DISTRO}-mola-lidar-odometry \
+ ros-${ROS_DISTRO}-image-transport-plugins
 
 RUN pip install placo
 

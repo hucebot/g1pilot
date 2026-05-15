@@ -9,6 +9,7 @@ rm -f /home/.base/bin/register-python-argcomplete 2>/dev/null || true
 
 WS=/ros2_ws
 DEFAULT_SKIP_PKGS=("livox_ros_driver2")
+CMAKE_ARGS=(--cmake-args -DROS_EDITION=ROS2 -DDISTRO_ROS="${ROS_DISTRO}")
 
 clean_pkgs() {
   rm -rf "${WS}/log" 2>/dev/null || true
@@ -38,12 +39,12 @@ has_token() {
 if [ "$#" -eq 0 ]; then
   clean_pkgs unitree_api unitree_go unitree_hg unitree_sdk2py
 
-  if [ "${BUILD_LIVOX:-0}" = "1" ]; then
+  if [ "${BUILD_LIVOX:-1}" = "1" ]; then
     clean_pkgs livox_ros_driver2
-    /home/.base/bin/python3 -m colcon build --symlink-install --executor parallel --parallel-workers 4
+    /home/.base/bin/python3 -m colcon build --symlink-install --executor parallel --parallel-workers 4 "${CMAKE_ARGS[@]}"
   else
     clean_pkgs livox_ros_driver2
-    /home/.base/bin/python3 -m colcon build --symlink-install --executor parallel --parallel-workers 4 --packages-skip "${DEFAULT_SKIP_PKGS[@]}"
+    /home/.base/bin/python3 -m colcon build --symlink-install --executor parallel --parallel-workers 4 --packages-skip "${DEFAULT_SKIP_PKGS[@]}" "${CMAKE_ARGS[@]}"
   fi
 
   exit 0
@@ -52,9 +53,9 @@ fi
 if [ "$1" = "all" ]; then
   shift
   clean_pkgs unitree_api unitree_go unitree_hg unitree_sdk2py livox_ros_driver2
-  /home/.base/bin/python3 -m colcon build --symlink-install --executor parallel --parallel-workers 4
+  /home/.base/bin/python3 -m colcon build --symlink-install --executor parallel --parallel-workers 4 "${CMAKE_ARGS[@]}"
   exit 0
 fi
 
 clean_pkgs "$@"
- /home/.base/bin/python3 -m colcon build --symlink-install --executor parallel --parallel-workers 4 --packages-select "$@"
+/home/.base/bin/python3 -m colcon build --symlink-install --executor parallel --parallel-workers 4 --packages-select "$@" "${CMAKE_ARGS[@]}"

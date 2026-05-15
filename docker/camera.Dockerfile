@@ -43,7 +43,7 @@ RUN mkdir build && cd build && \
 WORKDIR /ros2_ws/src
 RUN git clone https://github.com/IntelRealSense/realsense-ros.git -b ros2-master
 
-RUN apt-get install ros-${ROS_DISTRO}-cv-bridge ros-${ROS_DISTRO}-diagnostic-updater -y
+RUN apt-get install ros-${ROS_DISTRO}-cv-bridge ros-${ROS_DISTRO}-diagnostic-updater ros-${ROS_DISTRO}-image-transport-plugins -y
 
 RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /root/.bashrc && \
     echo "source /ros2_ws/install/setup.bash" >> /root/.bashrc
