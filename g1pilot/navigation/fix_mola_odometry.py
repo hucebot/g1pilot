@@ -87,7 +87,7 @@ class FixMolaOdometry(Node):
         q_out = quat_multiply(self.q_prefix, q_in)
         if self.normalize_quat:
             q_out = quat_normalize(q_out)
-        out.pose.pose.orientation = Quaternion(x=q_out[0], y=q_out[1], z=q_out[2], w=-q_out[3])
+        out.pose.pose.orientation = Quaternion(x=q_out[0], y=q_out[1], z=q_out[2], w=q_out[3])
 
         out.pose.covariance = msg.pose.covariance
         out.twist = msg.twist

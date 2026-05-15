@@ -58,15 +58,6 @@ def generate_launch_description():
         ),
 
         Node(
-            package='g1pilot',
-            executable='mola_fixed',
-            name='mola_fixed',
-            parameters=[{
-            }],
-            output='screen'
-        ),
-
-        Node(
             package='tf2_ros',
             executable='static_transform_publisher',
             name='mid360_to_livox_tf',
