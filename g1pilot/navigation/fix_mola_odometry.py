@@ -73,7 +73,7 @@ class FixMolaOdometry(Node):
         out.header.frame_id = self.map_frame
         out.child_frame_id = self.base_frame
 
-        px, py, pz = msg.pose.pose.position.x, -msg.pose.pose.position.y, msg.pose.pose.position.z
+        px, py, pz = msg.pose.pose.position.x, msg.pose.pose.position.y, msg.pose.pose.position.z
         out.pose.pose.position.x = px
         out.pose.pose.position.y = py
         out.pose.pose.position.z = pz

@@ -74,6 +74,11 @@ class Nav2Point(Node):
     def cb_auto_enable(self, msg: Bool):
         self.auto_enabled = msg.data
         if not self.auto_enabled:
+            joy = Joy()
+            joy.header.stamp = self.get_clock().now().to_msg()
+            joy.axes = [0.0] * 8
+            joy.buttons = [0] * 14
+            self.pub_joy.publish(joy)
             self.path = []
             self.idx = 0
             self.get_logger().info('Auto navigation disabled — path cleared.')
