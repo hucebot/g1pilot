@@ -26,6 +26,7 @@ class StreamDeck(Node):
         self.pub_right_hand = self.create_publisher(PointStamped, '/right_hand/dx3/action', 10)
         self.pub_emergency_stop = self.create_publisher(Bool, '/g1pilot/emergency_stop', 10)
         self.start_opensot_pub = self.create_publisher(Bool, '/g1pilot/start_opensot', 10)
+        self.pub_auto_enable = self.create_publisher(Bool, '/g1pilot/auto_enable', 10)
 
     def publish_bool(self, pub, value: bool):
         msg = Bool()
@@ -63,7 +64,7 @@ class ButtonGUI(QWidget):
             (0, 1): ("START\nBALANCING", lambda: self.flash_button((0, 1), self.node.pub_start_balancing)),
             (0, 4): ("OPENSOT", lambda: self.toggle_button((0, 4), self.node.start_opensot_pub)),
 
-            # (1, 0): ("HOMING\nARMS", lambda: self.flash_button((1, 0), self.node.pub_arms_home)),
+            (1, 0): ("AUTO\nNAV", lambda: self.toggle_button((1, 0), self.node.pub_auto_enable)),
 
             (2, 0): ("OPEN\nLEFT\nHAND", lambda: self.toggle_hand("left", "open", self.node.pub_left_hand)),
             (2, 1): ("CLOSE\nLEFT\nHAND", lambda: self.toggle_hand("left", "close", self.node.pub_left_hand)),
@@ -203,6 +204,7 @@ class ButtonGUI(QWidget):
         self.node.publish_bool(self.node.pub_start_balancing, False)
         self.node.publish_bool(self.node.pub_arms_enabled, False)
         self.node.publish_bool(self.node.pub_arms_home, False)
+        self.node.publish_bool(self.node.pub_auto_enable, False)
         self.node.publish_bool(self.node.pub_emergency_stop, True)
 
         for pos in self.buttons:

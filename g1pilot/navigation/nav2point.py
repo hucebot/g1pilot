@@ -73,6 +73,10 @@ class Nav2Point(Node):
 
     def cb_auto_enable(self, msg: Bool):
         self.auto_enabled = msg.data
+        if not self.auto_enabled:
+            self.path = []
+            self.idx = 0
+            self.get_logger().info('Auto navigation disabled — path cleared.')
 
     def cb_path(self, msg: Path):
         self.path = [(p.pose.position.x, p.pose.position.y) for p in msg.poses]
