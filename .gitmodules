@@ -1,0 +1,6 @@
+[submodule "sdk2/unitree_sdk2"]
+	path = sdk2/unitree_sdk2
+	url = https://github.com/KaliberAI/unitree_sdk2.git
+[submodule "sdk2/unitree_sdk2_python"]
+	path = sdk2/unitree_sdk2_python
+	url = https://github.com/KaliberAI/unitree_sdk2_python.git
