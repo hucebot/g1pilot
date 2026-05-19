@@ -336,19 +336,16 @@ RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /root/.bashrc && \
 
 RUN echo "export LD_LIBRARY_PATH=/usr/local/lib:\$LD_LIBRARY_PATH" >> /root/.bashrc
 
-WORKDIR /
-RUN git clone https://github.com/unitreerobotics/unitree_sdk2_python.git \
- && cd unitree_sdk2_python \
- && git checkout 794fb2b3fd9165fd245a7b568698d9e97d8ac0a0 \
- && /home/.base/bin/pip install -e .
+COPY sdk2/unitree_sdk2_python /tmp/sdk-build/unitree_sdk2_python
+RUN /home/.base/bin/pip install /tmp/sdk-build/unitree_sdk2_python
 
-WORKDIR /
-RUN git clone https://github.com/unitreerobotics/unitree_sdk2.git \
- && cd unitree_sdk2 \
+COPY sdk2/unitree_sdk2 /tmp/sdk-build/unitree_sdk2
+RUN cd /tmp/sdk-build/unitree_sdk2 \
  && mkdir build && cd build \
  && cmake .. \
  && make -j$(nproc) \
- && make install
+ && make install \
+ && rm -rf /tmp/sdk-build/unitree_sdk2
 
 WORKDIR /ros2_ws/src
 RUN git clone https://github.com/Livox-SDK/livox_ros_driver2.git /ros2_ws/src/livox_ros_driver2
@@ -426,13 +423,14 @@ RUN python3 -m pip install --no-cache-dir -U pip setuptools wheel && \
     python3 -m pip install --no-cache-dir cyclonedds
 RUN /home/.base/bin/pip install --no-cache-dir cyclonedds
 
-ENV CRC_SRC=/unitree_sdk2_python/unitree_sdk2py/utils/lib/crc_amd64.so
+ENV CRC_SRC=/tmp/sdk-build/unitree_sdk2_python/unitree_sdk2py/utils/lib/crc_amd64.so
 ENV CRC_DST=/unitree_sdk2py/lib/python3.12/site-packages/unitree_sdk2py/utils/lib
 
 RUN set -eux; \
     mkdir -p "$CRC_DST"; \
     cp "$CRC_SRC" "$CRC_DST/"; \
-    chmod +x "$CRC_DST/crc_amd64.so"
+    chmod +x "$CRC_DST/crc_amd64.so"; \
+    rm -rf /tmp/sdk-build
     
 RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /root/.bashrc && \
     echo "source /ros2_ws/install/setup.bash" >> /root/.bashrc
@@ -442,5 +440,6 @@ RUN echo "source /home/.base/bin/activate" >> /root/.bashrc
 RUN rm -f /home/.base/bin/register-python-argcomplete || true
 
 RUN echo "export LD_LIBRARY_PATH=/usr/local/lib:\$LD_LIBRARY_PATH" >> /root/.bashrc
+RUN echo "export PATH=/sdk2/unitree_sdk2/build/bin:\$PATH" >> /root/.bashrc
 
 CMD ["bash"]

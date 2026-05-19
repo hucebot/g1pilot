@@ -5,6 +5,9 @@ if [ -z "$G1_INTERFACE" ]; then
     echo "Set it to your network interface, e.g.: G1_INTERFACE=eno2"
     exit 1
 fi
+
+bash /sdk_setup.sh
+
 exec bash -ic '
 cd /ros2_ws &&
 ./cbuild &&

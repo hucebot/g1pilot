@@ -31,7 +31,9 @@ services:
       - ./setup_uri.sh:/ros2_ws/setup_uri.sh
       - ./cbuild:/ros2_ws/cbuild
       - ./entrypoint.sh:/entrypoint.sh:ro
+      - ./sdk_setup.sh:/sdk_setup.sh:ro
       - ./cyclonedds.xml:/cyclonedds.xml:ro
+      - ./../sdk2:/sdk2
     entrypoint: ["/bin/bash", "/entrypoint.sh"]
     healthcheck:
       test: >-

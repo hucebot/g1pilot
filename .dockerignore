@@ -1,0 +1,9 @@
+# Exclude everything by default, then whitelist what the build needs.
+# The only directories COPY'd into the image are sdk2/unitree_sdk2 and
+# sdk2/unitree_sdk2_python (see Dockerfile). Everything else is either
+# bind-mounted at runtime or not needed at build time.
+
+**
+
+!sdk2/unitree_sdk2/**
+!sdk2/unitree_sdk2_python/**
