@@ -13,22 +13,17 @@ def generate_launch_description():
         sys.exit("ERROR: G1_INTERFACE environment variable is not set.\n"
                  "Set it to your network interface, e.g.: export G1_INTERFACE=eno2")
 
-    pkg_share = get_package_share_directory('g1pilot')
-    default_map_yaml = os.path.join(pkg_share, 'config', 'simple_map.yaml')
 
     interface = LaunchConfiguration("interface")
     use_robot = LaunchConfiguration("use_robot")
     arm_controlled = LaunchConfiguration("arm_controlled")
     enable_arm_ui = LaunchConfiguration("enable_arm_ui")
-    map_yaml = LaunchConfiguration("map_yaml")
 
     return LaunchDescription([
         DeclareLaunchArgument("interface", default_value=EnvironmentVariable("G1_INTERFACE")),
         DeclareLaunchArgument("use_robot", default_value="true"),
         DeclareLaunchArgument("arm_controlled", default_value="both"),
         DeclareLaunchArgument("enable_arm_ui", default_value="true"),
-        DeclareLaunchArgument("map_yaml", default_value=default_map_yaml,
-                              description="Path to map YAML file"),
 
         # Corrects MOLA odometry and broadcasts TF: map -> pelvis
         Node(
@@ -50,7 +45,6 @@ def generate_launch_description():
             executable='create_map',
             name='create_map',
             parameters=[{
-                'yaml_path': map_yaml,
                 'frame_id': 'map',
             }],
             output='screen'

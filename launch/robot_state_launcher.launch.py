@@ -61,7 +61,7 @@ def generate_launch_description():
             package='tf2_ros',
             executable='static_transform_publisher',
             name='mid360_to_livox_tf',
-            arguments=['0','0','0','0','0','3.14159265','mid360_link','livox_frame']
+            arguments=['0','0','0','0','0','0','mid360_link','livox_frame']
         ),
 
         Node(

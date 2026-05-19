@@ -108,7 +108,7 @@ class DummyMapPublisher(Node):
         self.declare_parameter('width', 100)
         self.declare_parameter('height', 100)
         self.declare_parameter('resolution', 0.1)
-        self.declare_parameter('frame_id', 'odom')
+        self.declare_parameter('frame_id', 'map')
         self.declare_parameter('obstacles', '')
         self.w = int(self.get_parameter('width').value)
         self.h = int(self.get_parameter('height').value)
@@ -158,7 +158,7 @@ class DummyMapPublisher(Node):
 
 def main(args=None):
     rclpy.init(args=args)
-    node = MapPublisher()
+    node = DummyMapPublisher()
     try:
         rclpy.spin(node)
     except KeyboardInterrupt:

@@ -733,7 +733,7 @@
 
   <link name="livox_frame"></link>
   <joint name="livox_joint" type="fixed">
-    <origin xyz="0.0 0.0 0.0" rpy="3.141561 0 0"/>
+    <origin xyz="0.0 0.0 0.0" rpy="0 0 0"/>
     <parent link="mid360_link"/>
     <child link="livox_frame"/>
   </joint>
