@@ -341,7 +341,8 @@ RUN /home/.base/bin/pip install /tmp/sdk-build/unitree_sdk2_python
 
 COPY sdk2/unitree_sdk2 /tmp/sdk-build/unitree_sdk2
 RUN cd /tmp/sdk-build/unitree_sdk2 \
- && mkdir build && cd build \
+ && rm -rf build \
+ && mkdir -p build && cd build \
  && cmake .. \
  && make -j$(nproc) \
  && make install \
@@ -417,19 +418,20 @@ RUN apt install -y \
  ros-${ROS_DISTRO}-mola-lidar-odometry \
  ros-${ROS_DISTRO}-image-transport-plugins
 
-RUN pip install placo
+RUN pip install placo websockets
 
 RUN python3 -m pip install --no-cache-dir -U pip setuptools wheel && \
     python3 -m pip install --no-cache-dir cyclonedds
 RUN /home/.base/bin/pip install --no-cache-dir cyclonedds
 
-ENV CRC_SRC=/tmp/sdk-build/unitree_sdk2_python/unitree_sdk2py/utils/lib/crc_amd64.so
-ENV CRC_DST=/unitree_sdk2py/lib/python3.12/site-packages/unitree_sdk2py/utils/lib
+ENV CRC_SRC_DIR=/tmp/sdk-build/unitree_sdk2_python/unitree_sdk2py/utils/lib
+ENV CRC_DST=/home/.base/lib/python3.12/site-packages/unitree_sdk2py/utils/lib
 
 RUN set -eux; \
     mkdir -p "$CRC_DST"; \
-    cp "$CRC_SRC" "$CRC_DST/"; \
-    chmod +x "$CRC_DST/crc_amd64.so"; \
+    cp "$CRC_SRC_DIR/crc_amd64.so"   "$CRC_DST/"; \
+    cp "$CRC_SRC_DIR/crc_aarch64.so" "$CRC_DST/"; \
+    chmod +x "$CRC_DST/crc_amd64.so" "$CRC_DST/crc_aarch64.so"; \
     rm -rf /tmp/sdk-build
     
 RUN echo "source /opt/ros/${ROS_DISTRO}/setup.bash" >> /root/.bashrc && \

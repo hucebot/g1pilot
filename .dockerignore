@@ -7,3 +7,15 @@
 
 !sdk2/unitree_sdk2/**
 !sdk2/unitree_sdk2_python/**
+
+# Re-exclude host build artifacts and VCS metadata so they don't leak into
+# the image build context (otherwise stale CMake build dirs from local
+# builds break in-image `mkdir build`).
+sdk2/unitree_sdk2/build/
+sdk2/unitree_sdk2/install/
+sdk2/unitree_sdk2_python/build/
+sdk2/unitree_sdk2_python/dist/
+sdk2/unitree_sdk2_python/**/__pycache__/
+sdk2/unitree_sdk2_python/**/*.egg-info/
+sdk2/unitree_sdk2/.git
+sdk2/unitree_sdk2_python/.git
