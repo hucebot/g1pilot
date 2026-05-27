@@ -11,6 +11,17 @@ def _dist(a,b):
     dx=a[0]-b[0]; dy=a[1]-b[1]
     return math.hypot(dx,dy)
 
+def yaw_from_quat(x, y, z, w):
+    s = 2.0 * (w * z + x * y)
+    c = 1.0 - 2.0 * (y * y + z * z)
+    return math.atan2(s, c)
+
+def goal_yaw_from_pose(pose):
+    q = pose.orientation
+    if abs(q.x) + abs(q.y) + abs(q.z) + abs(q.w) <= 1e-6:
+        return None
+    return yaw_from_quat(q.x, q.y, q.z, q.w)
+
 def _catmull_rom_centripetal(points, samples_per_seg=8, closed=False):
     if len(points)<2: return points[:]
     P=points[:]
@@ -96,23 +107,25 @@ class DijkstraPlanner(Node):
             self.get_logger().warn("No odom pose yet.")
             return
         gx=float(msg.pose.position.x); gy=float(msg.pose.position.y)
+        goal_yaw=goal_yaw_from_pose(msg.pose)
+        frame_id=msg.header.frame_id or 'map'
         if self.map is None:
-            self.publish_path(self.line_points(self.px,self.py,gx,gy,msg.header.frame_id or 'map'),msg.header.frame_id or 'map')
+            self.publish_path(self.line_points(self.px,self.py,gx,gy,frame_id),frame_id,goal_yaw)
             return
         sx,sy=self.world_to_grid(self.px,self.py)
         gx_i,gy_i=self.world_to_grid(gx,gy)
         if not self.in_bounds(sx,sy) or not self.in_bounds(gx_i,gy_i):
-            self.publish_path(self.line_points(self.px,self.py,gx,gy,self.map_frame),self.map_frame); return
+            self.publish_path(self.line_points(self.px,self.py,gx,gy,self.map_frame),self.map_frame,goal_yaw); return
         if self.is_occ(sx,sy) or self.is_occ(gx_i,gy_i):
-            self.publish_path(self.line_points(self.px,self.py,gx,gy,self.map_frame),self.map_frame); return
+            self.publish_path(self.line_points(self.px,self.py,gx,gy,self.map_frame),self.map_frame,goal_yaw); return
         path_idx=self.dijkstra((sx,sy,self.pyaw),(gx_i,gy_i))
         if not path_idx:
-            self.publish_path(self.line_points(self.px,self.py,gx,gy,self.map_frame),self.map_frame); return
+            self.publish_path(self.line_points(self.px,self.py,gx,gy,self.map_frame),self.map_frame,goal_yaw); return
         pts=[self.grid_to_world(ix,iy) for ix,iy in path_idx]
         pts=self.simplify_spacing(pts,0.02)
         pts=self.shortcut_path(pts)
         pts=_catmull_rom_centripetal(pts,8,False)
-        self.publish_path(pts,self.map_frame)
+        self.publish_path(pts,self.map_frame,goal_yaw)
 
     def world_to_grid(self,x,y):
         return int(math.floor((x-self.ox)/self.res)), int(math.floor((y-self.oy)/self.res))
@@ -161,7 +174,7 @@ class DijkstraPlanner(Node):
         path.reverse()
         return path
 
-    def publish_path(self,pts,frame_id):
+    def publish_path(self,pts,frame_id,goal_yaw=None):
         path=Path()
         path.header=Header()
         path.header.stamp=self.get_clock().now().to_msg()
@@ -172,13 +185,16 @@ class DijkstraPlanner(Node):
             p=PoseStamped()
             p.header=path.header
             p.pose.position.x=x; p.pose.position.y=y
-            if i < len(pts)-1:
-                nx,ny=pts[i+1]
-                yaw=math.atan2(ny-y,nx-x)
+            if i == len(pts)-1 and goal_yaw is not None:
+                yaw=goal_yaw
             else:
-                yaw=prev_yaw
-            alpha=0.3
-            yaw=prev_yaw+alpha*math.atan2(math.sin(yaw-prev_yaw),math.cos(yaw-prev_yaw))
+                if i < len(pts)-1:
+                    nx,ny=pts[i+1]
+                    yaw=math.atan2(ny-y,nx-x)
+                else:
+                    yaw=prev_yaw
+                alpha=0.3
+                yaw=prev_yaw+alpha*math.atan2(math.sin(yaw-prev_yaw),math.cos(yaw-prev_yaw))
             prev_yaw=yaw
             p.pose.orientation.z=math.sin(yaw/2.0)
             p.pose.orientation.w=math.cos(yaw/2.0)

@@ -21,7 +21,9 @@ class Nav2Point(Node):
         self.declare_parameter('pos_kp', 0.8)
         self.declare_parameter('yaw_kp', 1.5)
         self.declare_parameter('waypoint_tolerance', 0.20)
-        self.declare_parameter('goal_tolerance', 0.10)
+        self.declare_parameter('goal_tolerance', 0.075)
+        self.declare_parameter('goal_yaw_tolerance', 0.12)
+        self.declare_parameter('align_goal_yaw', True)
         self.declare_parameter('frame_id', 'map')
         self.declare_parameter('joy_topic', '/g1pilot/auto_joy')
         self.declare_parameter('path_topic', '/g1pilot/path')
@@ -35,6 +37,8 @@ class Nav2Point(Node):
         self.yaw_kp = self.get_parameter('yaw_kp').value
         self.wp_tol = self.get_parameter('waypoint_tolerance').value
         self.goal_tol = self.get_parameter('goal_tolerance').value
+        self.goal_yaw_tol = self.get_parameter('goal_yaw_tolerance').value
+        self.align_goal_yaw = self.get_parameter('align_goal_yaw').value
         self.frame_id = self.get_parameter('frame_id').value
         self.joy_topic = self.get_parameter('joy_topic').value
         self.path_topic = self.get_parameter('path_topic').value
@@ -50,6 +54,7 @@ class Nav2Point(Node):
         self.pub_joy = self.create_publisher(Joy, self.joy_topic, qos)
         self.pub_wp_marker = self.create_publisher(Marker, '/g1pilot/waypoint_marker', qos)
         self.pub_goal_marker = self.create_publisher(Marker, '/g1pilot/goal_marker', qos)
+        self.pub_goal_reach = self.create_publisher(Bool, '/g1pilot/goal_reach', qos)
         self.timer = self.create_timer(1.0 / self.rate, self.loop)
 
         self.have_pose = False
@@ -58,6 +63,9 @@ class Nav2Point(Node):
         self.path_frame = self.frame_id
         self.idx = 0
         self.x = self.y = self.yaw = 0.0
+        self.goal_yaw = None
+        self.aligning_goal_yaw = False
+        self.goal_reached = False
 
         self.logged_no_pose = False
         self.logged_no_path = False
@@ -71,9 +79,18 @@ class Nav2Point(Node):
         self.have_pose = True
         self.logged_no_pose = False
 
+    def publish_goal_reach(self, reached: bool):
+        if reached == self.goal_reached:
+            return
+        self.goal_reached = reached
+        msg = Bool()
+        msg.data = reached
+        self.pub_goal_reach.publish(msg)
+
     def cb_auto_enable(self, msg: Bool):
         self.auto_enabled = msg.data
         if not self.auto_enabled:
+            self.publish_goal_reach(False)
             joy = Joy()
             joy.header.stamp = self.get_clock().now().to_msg()
             joy.axes = [0.0] * 8
@@ -81,31 +98,67 @@ class Nav2Point(Node):
             self.pub_joy.publish(joy)
             self.path = []
             self.idx = 0
+            self.goal_yaw = None
+            self.aligning_goal_yaw = False
             self.get_logger().info('Auto navigation disabled — path cleared.')
 
     def cb_path(self, msg: Path):
+        self.publish_goal_reach(False)
         self.path = [(p.pose.position.x, p.pose.position.y) for p in msg.poses]
         self.path_frame = msg.header.frame_id if msg.header.frame_id else self.frame_id
         self.idx = 0
+        self.aligning_goal_yaw = False
         self.logged_no_path = False
         self.logged_end_path = False
+        if msg.poses:
+            q = msg.poses[-1].pose.orientation
+            if abs(q.x) + abs(q.y) + abs(q.z) + abs(q.w) > 1e-6:
+                self.goal_yaw = yaw_from_quat(q.x, q.y, q.z, q.w)
+            else:
+                self.goal_yaw = None
+        else:
+            self.goal_yaw = None
         if self.path:
-            self.publish_goal_marker(self.path[-1][0], self.path[-1][1])
+            self.publish_goal_marker(self.path[-1][0], self.path[-1][1], self.goal_yaw)
 
-    def publish_goal_marker(self, gx, gy):
-        m = Marker()
-        m.header.frame_id = self.path_frame
-        m.header.stamp = self.get_clock().now().to_msg()
-        m.ns = 'g1pilot_goal'
-        m.id = 1
-        m.type = Marker.SPHERE
-        m.action = Marker.ADD
-        m.pose.position.x = gx
-        m.pose.position.y = gy
-        m.pose.orientation.w = 1.0
-        m.scale.x = m.scale.y = m.scale.z = 0.12
-        m.color.r, m.color.g, m.color.b, m.color.a = 0.0, 1.0, 0.0, 0.9
-        self.pub_goal_marker.publish(m)
+    def publish_goal_marker(self, gx, gy, gyaw=None):
+        stamp = self.get_clock().now().to_msg()
+
+        sphere = Marker()
+        sphere.header.frame_id = self.path_frame
+        sphere.header.stamp = stamp
+        sphere.ns = 'g1pilot_goal'
+        sphere.id = 1
+        sphere.type = Marker.SPHERE
+        sphere.action = Marker.ADD
+        sphere.pose.position.x = gx
+        sphere.pose.position.y = gy
+        sphere.pose.orientation.w = 1.0
+        sphere.scale.x = sphere.scale.y = sphere.scale.z = 0.12
+        sphere.color.r, sphere.color.g, sphere.color.b, sphere.color.a = 0.0, 1.0, 0.0, 0.9
+        self.pub_goal_marker.publish(sphere)
+
+        arrow = Marker()
+        arrow.header.frame_id = self.path_frame
+        arrow.header.stamp = stamp
+        arrow.ns = 'g1pilot_goal'
+        arrow.id = 2
+        arrow.type = Marker.ARROW
+        if gyaw is None:
+            arrow.action = Marker.DELETE
+            self.pub_goal_marker.publish(arrow)
+            return
+        arrow.action = Marker.ADD
+        arrow.pose.position.x = gx
+        arrow.pose.position.y = gy
+        arrow.pose.position.z = 0.0
+        arrow.pose.orientation.z = math.sin(gyaw / 2.0)
+        arrow.pose.orientation.w = math.cos(gyaw / 2.0)
+        arrow.scale.x = 0.35
+        arrow.scale.y = 0.05
+        arrow.scale.z = 0.05
+        arrow.color.r, arrow.color.g, arrow.color.b, arrow.color.a = 1.0, 0.0, 0.0, 1.0
+        self.pub_goal_marker.publish(arrow)
 
     def publish_wp_marker(self, wx, wy):
         m = Marker()
@@ -173,10 +226,43 @@ class Nav2Point(Node):
             axes = [0.0] * 8
             buttons = [0] * 14
 
+            need_yaw_align = (
+                self.align_goal_yaw
+                and self.goal_yaw is not None
+                and (self.aligning_goal_yaw or dist_goal <= self.goal_tol)
+            )
+
+            if need_yaw_align:
+                self.aligning_goal_yaw = True
+                yaw_err = self.goal_yaw - self.yaw
+                while yaw_err > math.pi:
+                    yaw_err -= 2 * math.pi
+                while yaw_err < -math.pi:
+                    yaw_err += 2 * math.pi
+
+                if abs(yaw_err) <= self.goal_yaw_tol:
+                    joy.axes = axes
+                    joy.buttons = buttons
+                    self.pub_joy.publish(joy)
+                    self.publish_goal_reach(True)
+                    self.path = []
+                    self.aligning_goal_yaw = False
+                    return
+
+                wz = max(-self.wz_lim, min(self.wz_lim, self.yaw_kp * yaw_err))
+                ax3 = max(-1.0, min(1.0, -wz / self.wz_lim))
+                axes[2] = ax3
+                buttons[7] = 1
+                joy.axes = axes
+                joy.buttons = buttons
+                self.pub_joy.publish(joy)
+                return
+
             if dist_goal <= self.goal_tol:
                 joy.axes = axes
                 joy.buttons = buttons
                 self.pub_joy.publish(joy)
+                self.publish_goal_reach(True)
                 self.path = []
                 return
 
