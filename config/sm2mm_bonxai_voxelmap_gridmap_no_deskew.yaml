@@ -1,0 +1,89 @@
+# -----------------------------------------------------------------------------
+# Pipeline definition file for sm2mm (simplemap-to-metricmap)
+#
+# See: https://github.com/MOLAorg/mp2p_icp/tree/develop/apps/sm2mm
+#
+# Explanation of this particular pipeline:
+#  Create a 3D voxel map in which all observations are to be merged after
+#  downsampling. Finally, a 2D slice of the voxelmap is extracted as a gridmap.
+# -----------------------------------------------------------------------------
+
+# --------------------------------------------------------
+# 1) Generator (observation -> local frame metric maps)
+# --------------------------------------------------------
+generators:
+  # This first generator is used to just create the metric map "gridmap" once:
+  - class_name: mp2p_icp_filters::Generator
+    params:
+      target_layer: "voxelmap"
+      # The default '.*' is replaced by '' (none): do not insert directly any observation,
+      # since we want to insert them after decimation
+      process_class_names_regex: ""
+      metric_map_definition:
+        # Any class derived from mrpt::maps::CMetricMap https://docs.mrpt.org/reference/latest/group_mrpt_maps_grp.html
+        class: mrpt::maps::CVoxelMap
+        #plugin: 'libmola_metric_maps.so' # Import additional custom user-defined map classes (search in LD_LIBRARY_PATH)
+        creationOpts:
+          resolution: 0.20 # [m]
+          #resolution: $f{0.05*MAX_SENSOR_RANGE} # [m]  # You can also use formulas in any numeric field
+        #insertionOpts:
+        # none required for this class
+        likelihoodOpts:
+          decimation: 1
+          occupiedThreshold: 0.51
+        renderOpts:
+          occupiedThreshold: 0.51
+          freeThreshold: 0.40
+          generateFreeVoxels: false
+
+  # Default generator: convert all observations into a point cloud layer "raw":
+  - class_name: mp2p_icp_filters::Generator
+    params:
+      target_layer: "raw"
+      throw_on_unhandled_observation_class: true
+      process_class_names_regex: ".*"
+      #process_sensor_labels_regex: '.*'
+      filterOutPointsAtZero: true # Remove invalid points in 'organized' LiDAR scans
+
+# --------------------------------------------------------
+# 2) Per local frame filtering
+# --------------------------------------------------------
+filters:
+  - class_name: mp2p_icp_filters::FilterByRange
+    params:
+      input_pointcloud_layer: "raw"
+      output_layer_between: "filtered"
+      range_min: 3.0
+      range_max: 100
+      center: [robot_x, robot_y, robot_z]
+
+  - class_name: mp2p_icp_filters::FilterDecimateVoxels
+    params:
+      input_pointcloud_layer: "filtered"
+      output_pointcloud_layer: "localmap_pre"
+      voxel_filter_resolution: 0.10 # [m]
+      decimate_method: DecimateMethod::FirstPoint
+
+  - class_name: mp2p_icp_filters::FilterMerge
+    params:
+      input_pointcloud_layer: "localmap_pre"
+      target_layer: "voxelmap"
+      robot_pose:
+        [robot_x, robot_y, robot_z, robot_yaw, robot_pitch, robot_roll]
+
+  # Remove layers not intended for map insertion:
+  - class_name: mp2p_icp_filters::FilterDeleteLayer
+    params:
+      pointcloud_layer_to_remove: ["raw", "filtered", "localmap_pre"]
+
+# -------------------------------------------------------------------
+# 3) Final, overall filter pipeline to apply to the whole metric map
+# -------------------------------------------------------------------
+final_filters:
+  - class_name: mp2p_icp_filters::FilterVoxelSlice
+    params:
+      input_layer: "voxelmap"
+      output_layer: "gridmap"
+      # "z" coordinates at which to take the slice:
+      slice_z_min: 0.10
+      slice_z_max: 0.30
