@@ -23,6 +23,8 @@ def generate_launch_description():
     publish_joint_states = LaunchConfiguration("publish_joint_states")
     interface = LaunchConfiguration("interface")
     sim_rate_hz = LaunchConfiguration("sim_rate_hz")
+    arm_controlled = LaunchConfiguration("arm_controlled")
+    enable_arm_ui = LaunchConfiguration("enable_arm_ui")
 
     urdf = os.path.join(
         get_package_share_directory(package_name), "description_files/urdf", urdf_file_name
@@ -43,6 +45,7 @@ def generate_launch_description():
                               description="Simulation rate when use_robot=false"),
         DeclareLaunchArgument("arm_controlled", default_value="both",
                                 description="Which arm to control: 'left', 'right', or 'both'"),
+        DeclareLaunchArgument("enable_arm_ui", default_value="true"),
 
         Node(
             package='g1pilot',
@@ -53,6 +56,20 @@ def generate_launch_description():
                 'use_robot': ParameterValue(use_robot, value_type=bool),
                 'sim_rate_hz': ParameterValue(sim_rate_hz, value_type=float),
                 'publish_joint_states': ParameterValue(publish_joint_states, value_type=bool),
+            }],
+            output='screen'
+        ),
+
+        # Locomotion client — sends commands to robot
+        Node(
+            package='g1pilot',
+            executable='loco_client',
+            name='loco_client',
+            parameters=[{
+                'interface': interface,
+                'use_robot': ParameterValue(use_robot, value_type=bool),
+                'arm_controlled': arm_controlled,
+                'enable_arm_ui': ParameterValue(enable_arm_ui, value_type=bool),
             }],
             output='screen'
         ),
