@@ -177,9 +177,11 @@ RUN apt-get update && apt-get install -yy \
     ros-${ROS_DISTRO}-rviz2 \
     ros-${ROS_DISTRO}-joy \
     ros-${ROS_DISTRO}-pcl-conversions \
+    ros-${ROS_DISTRO}-pcl-ros \
     ros-${ROS_DISTRO}-rmw-cyclonedds-cpp \
     ros-${ROS_DISTRO}-rosidl-generator-dds-idl \
     libpcl-dev \
+    pcl-tools \
     terminator \
     nano \
     neovim \
@@ -416,7 +418,8 @@ RUN apt install -y \
  ros-${ROS_DISTRO}-mola \
  ros-${ROS_DISTRO}-mola-state-estimation \
  ros-${ROS_DISTRO}-mola-lidar-odometry \
- ros-${ROS_DISTRO}-image-transport-plugins
+ ros-${ROS_DISTRO}-image-transport-plugins \
+ ros-${ROS_DISTRO}-mrpt-map-server
 
 RUN pip install placo websockets
 
