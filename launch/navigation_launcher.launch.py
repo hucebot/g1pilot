@@ -36,15 +36,15 @@ def generate_launch_description():
         ),
 
         # Publishes OccupancyGrid on /map
-        Node(
-            package='g1pilot',
-            executable='create_map',
-            name='create_map',
-            parameters=[{
-                'frame_id': 'map',
-            }],
-            output='screen'
-        ),
+        # Node(
+        #     package='g1pilot',
+        #     executable='create_map',
+        #     name='create_map',
+        #     parameters=[{
+        #         'frame_id': 'map',
+        #     }],
+        #     output='screen'
+        # ),
 
         # Dijkstra path planner
         Node(
