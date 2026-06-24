@@ -59,19 +59,28 @@ To build the docker image in the laptop, run the following command:
   sh build.sh
   ```
 
-To build the docker image in the robot, run the following command:
+To run the docker image in the laptop, run the following command:
+  ```bash
+  sh run.sh
+  ```
+To attach a terminal to the running docker image in the laptop, run the following command:
+  ```bash
+  sh attach.sh
+  ```
+
+To build the docker image in the robot, ssh into the robot, then run the following command:
   ```bash
   sh build_camera.sh
   ```
 
-Then, you can run the docker image in the laptop with the following command:
-  ```bash
-  sh run.sh
-  ```
-
-To run the docker image in the robot with the following command:
+To run the docker image in the robot, ssh into the robot, then run the following command:
   ```bash
   sh run_camera.sh
+  ```
+
+To attach a terminal to the running docker image in the robot, ssh into the robot, then run the following command:
+  ```bash
+  sh attach_camera.sh
   ```
 
 ## 🧠 Nodes Overview
