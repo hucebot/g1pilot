@@ -23,7 +23,7 @@ def generate_launch_description():
     # Mandatory
     lidar_topic_name_arg = DeclareLaunchArgument(
         "lidar_topic_name", default_value="/livox/lidar", description="Topic name to listen for PointCloud2 input from the LiDAR (for example '/ouster/points')")
-    topic_env_var = SetEnvironmentVariable(
+    lidar_topic_env_var = SetEnvironmentVariable(
         name='MOLA_LIDAR_TOPIC', value=LaunchConfiguration('lidar_topic_name'))
     # ~~~~~~~~~~~~
     ignore_lidar_pose_from_tf_arg = DeclareLaunchArgument(
@@ -95,11 +95,18 @@ def generate_launch_description():
     mola_initial_map_sm_file_env_var = SetEnvironmentVariable(
         name='MOLA_LOAD_SM', value=LaunchConfiguration('mola_initial_map_sm_file'))
     # ~~~~~~~~~~~~
+    mola_tf_footprint_link_arg = DeclareLaunchArgument(
+        "mola_tf_footprint_link",
+        default_value="",
+        description="If not empty, MOLA broadcasts a static /tf from this footprint frame to base_link (e.g. 'base_footprint'). Leave empty to disable footprint TF publishing.")
+    mola_tf_footprint_link_env_var = SetEnvironmentVariable(
+        name='MOLA_TF_FOOTPRINT_LINK',
+        value=LaunchConfiguration('mola_tf_footprint_link'))
+    # ~~~~~~~~~~~~
     mola_footprint_to_base_link_tf_arg = DeclareLaunchArgument(
         "mola_footprint_to_base_link_tf", 
         default_value="[0, 0, 0, 0, 0, 0]",
-        description="Transformation between base_footprint and pelvis."
-    )
+        description="Transformation between base_footprint and base_link, as [x, y, z, yaw_deg, pitch_deg, roll_deg]. Only used when mola_tf_footprint_link is set.")
     mola_footprint_to_base_link_tf_env_var = SetEnvironmentVariable(
         name='MOLA_TF_FOOTPRINT_TO_BASE_LINK',
         value=LaunchConfiguration('mola_footprint_to_base_link_tf'))
@@ -168,12 +175,6 @@ def generate_launch_description():
     mola_precise_deskew_from_imu_env_var = SetEnvironmentVariable(
         name='MOLA_USE_PRECISE_LOCAL_VELOCITIES', value=LaunchConfiguration('mola_precise_deskew_from_imu'))
     
-    mola_footprint_to_base_link_tf_arg = DeclareLaunchArgument(
-        "mola_footprint_to_base_link_tf", 
-        default_value="[0, 0, 0, 0, 0, 0]",
-        description="Transformation between base_footprint and pelvis."
-    )
-
     # Namespace (Based on Nav2's bring-up launch file!)
     # ---------------------------------------------------
     namespace = LaunchConfiguration('namespace')
@@ -188,9 +189,13 @@ def generate_launch_description():
         'use_namespace',
         default_value='false',
         description='Whether to apply a namespace to the navigation stack')
-    
-    disable_tf_publish_env_var = SetEnvironmentVariable(
-        name='MOLA_LOCALIZATION_PUBLISH_TF', value='False')
+    # ~~~~~~~~~~~~
+    publish_tf_arg = DeclareLaunchArgument(
+        "publish_tf", default_value="False",
+        description="Whether MOLA BridgeROS2 should publish localization /tf (map->base_link or REP-105 map->odom)")
+    publish_tf_env_var = SetEnvironmentVariable(
+        name='MOLA_LOCALIZATION_PUBLISH_TF',
+        value=LaunchConfiguration('publish_tf'))
 
     # Map fully qualified names to relative ones so the node's namespace can be prepended.
     # In case of the transforms (tf), currently, there doesn't seem to be a better alternative
@@ -240,7 +245,7 @@ def generate_launch_description():
         declare_namespace_cmd,
         declare_use_namespace_cmd,
         lidar_topic_name_arg,
-        topic_env_var,
+        lidar_topic_env_var,
         ignore_lidar_pose_from_tf_arg,
         fixed_sensorpose_env_var,
         gnss_topic_name_arg,
@@ -265,6 +270,8 @@ def generate_launch_description():
         mola_initial_map_mm_file_env_var,
         mola_initial_map_sm_file_arg,
         mola_initial_map_sm_file_env_var,
+        mola_tf_footprint_link_arg,
+        mola_tf_footprint_link_env_var,
         mola_footprint_to_base_link_tf_arg,
         mola_footprint_to_base_link_tf_env_var,
         enforce_planar_motion_arg,
@@ -287,6 +294,7 @@ def generate_launch_description():
         mola_precise_deskew_from_imu_arg,
         mola_precise_deskew_from_imu_env_var,
         use_rviz_arg,
+        publish_tf_arg,
+        publish_tf_env_var,
         node_group,
-        disable_tf_publish_env_var,
     ])
